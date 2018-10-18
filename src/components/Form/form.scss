@@ -1,0 +1,138 @@
+@import '../../sass/color';
+@import '../../sass/vars';
+
+
+.overlay-container {
+    position: relative;
+}
+
+.draw-on {
+    z-index: 1;
+    border: none;
+    position: absolute;
+    left: 0;
+    max-width: none;
+}
+
+.canvas {
+    z-index: 9999;
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: 0;
+    border: none;
+}
+
+.color-picker-panel {
+    z-index: 99999;
+    background: $color-ui-panel;
+    width: $window-width - 40;
+    border-radius: 8px;
+    border: 2px solid $color-ui-border;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, .4);
+    position: absolute;
+    top: 1%;
+    right: 1%;
+    margin-bottom: 10px;
+}
+
+.panel-row {
+    position: relative;
+    margin: 0 10px 10px;
+
+    &:first-child {
+        margin-top: 10px;
+        margin-bottom: $spacer - $swatch-space;
+    }
+
+    &:after {
+        content: "";
+        display: table;
+        clear: both;
+    }
+}
+
+.panel-header {
+    background: $color-ui-panel-dark;
+    padding: 8px;
+    margin: 0 -10px $spacer;
+    text-align: center;
+}
+
+.swatch {
+    display: inline-block;
+    width: $swatch-width;
+    height: $swatch-width;
+    background: #ccc;
+    border-radius: 4px;
+    margin-left: 8px;
+    margin-bottom: 4px;
+    box-sizing: border-box;
+    border: none;
+    cursor: pointer;
+}
+
+.default-swatches {
+    width: $swatches-width + 40;
+}
+
+.c1 {
+    background-color: #FFFFFF;
+}
+
+.c2 {
+    background-color: rgb(255, 251, 13);
+}
+
+.c3 {
+    background-color: rgb(5, 50, 255);
+}
+
+.c4 {
+    background-color: rgb(255, 147, 0);
+}
+
+.c5 {
+    background-color: rgb(0, 249, 26);
+}
+
+.c6 {
+    background-color: rgb(255, 39, 0);
+}
+
+.c7 {
+    background-color: #000;
+}
+
+.c8 {
+    background-color: rgb(104, 104, 104);
+}
+
+.c9 {
+    background-color: rgb(238, 84, 100);
+}
+
+.c10 {
+    background-color: rgb(210, 122, 238);
+}
+
+.c11 {
+    background-color: rgb(91, 168, 196);
+}
+
+.c12 {
+    background-color: rgb(230, 74, 169);
+}
+
+.canvas-label {
+    position: absolute;
+    z-index: 999999;
+    color: #000;
+    font-size: 1.3rem;
+}
+
+.canvas-input {
+    background-color: transparent;
+    border: none;
+}
