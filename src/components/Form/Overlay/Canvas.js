@@ -105,7 +105,7 @@ class Canvas extends React.Component {
         let { current } = this.props.canvasDatas;
         const key = e.target.getAttribute('data-key');
         
-        inputs = inputs.map(input => {
+        const inputsUpdate = inputs.map(input => {
             if(input.inputKey == key) {
                 let currentLabel = input.label.current;
                 let currentInput = currentLabel.childNodes[1];
@@ -116,7 +116,7 @@ class Canvas extends React.Component {
             }
             return input;
         });
-        this.setState({ inputs });
+        this.setState({ inputs: inputsUpdate });
     }
 
     dragTest = e => {
@@ -129,7 +129,7 @@ class Canvas extends React.Component {
         const value = self.value.trim();
         const key = self.getAttribute('data-key');
 
-        inputs = inputs.map(input => {
+        const inputsUpdate = inputs.map(input => {
             if(input.inputKey == key) {
                 let labelContent = input.label.current.childNodes[0];
                 if(value.length > 0) {
@@ -140,7 +140,7 @@ class Canvas extends React.Component {
             }
             return input
         });
-        this.setState({ inputs });
+        this.setState({ inputs: inputsUpdate });
     }
 
     onCreateInput = e => {
@@ -198,12 +198,6 @@ class Canvas extends React.Component {
         console.log(inputs)
         this.setState({ inputs, inputKey });
         const inputsLength = inputs.length;
-
-        if (inputsLength > 1) {
-        const label = inputs[inputsLength - 1].label.current;
-        console.log(label)
-            label.focus();
-        }
     }
 
     _setState = (value, name) => {
@@ -222,15 +216,16 @@ class Canvas extends React.Component {
         let { inputs } = this.state;
         const key = e.dataTransfer.getData('key');
 
-        inputs = inputs.map(input => {
+        const inputsUpdate = inputs.map(input => {
             if(input.inputKey == key) {
+                console.log(input)
                 let currentLabel = input.label.current;
-                currentLabel.style.top = e.clientY;
-                currentLabel.style.left = e.clientX;
+                currentLabel.style.top = e.clientY + 'px';
+                currentLabel.style.left = e.clientX + 'px';
             }
             return input;
         });
-        this.setState({ inputs });
+        this.setState({ inputs: inputsUpdate });
     }
 
     render() {
