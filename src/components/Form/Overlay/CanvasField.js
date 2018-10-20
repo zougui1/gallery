@@ -10,10 +10,10 @@ class CanvasField extends React.Component {
 
     onInputClick = e => {
         let { _setState, current, inputs } = this.props;
-        const key = e.target.getAttribute('data-key');
+        const key = Number(e.target.getAttribute('data-key'));
         
         inputs = inputs.map(input => {
-            if(input.inputKey == key) {
+            if(input.inputKey === key) {
                 let currentLabel = input.label;
                 currentLabel.childNodes[1].style.color = current.color;
                 currentLabel.style.color = current.color;

@@ -2,7 +2,7 @@ import React from 'react';
 
 import '../form.scss';
 
-import CanvasField from './CanvasField';
+//import CanvasField from './CanvasField';
 
 /*function collect(connect, monitor) {
     return {
@@ -19,35 +19,47 @@ class Canvas extends React.Component {
             drawing: false,
             inputKey: 0,
             inputs: [],
-            labels: []
+            labels: [],
+            draggingOut: false
         }
     }
 
     componentDidMount = () => {
         this.props.actions.setRef(document.getElementById('canvas'));
+        const htmlElement = document.getElementsByTagName('html')[0];
+        htmlElement.addEventListener('dragover', e => this.dragOverHandler(e, 'html'));
+        htmlElement.addEventListener('drop', this.dropHandler);
     }
 
     componentDidUpdate = () => {
-        const { inputs } = this.state;
-        const inputsLength = inputs.length;
-        if(inputsLength > 1) {
-            const label = inputs[inputsLength - 1].label.current;
-            console.log(label)
-            label.focus();
+        let { lastInput } = this.state;
+        if(lastInput) {
+            lastInput.label.current.focus();
+            lastInput = '';
+            this.setState({ lastInput });
         }
     }
 
     drawLine = (x0, y0, x1, y1, color, emit) => {
-        const { context, canvasPositions } = this.props.canvasDatas;
+        const { context, canvasPositions, contextAction, current } = this.props.canvasDatas;
         const { top, left } = canvasPositions;
-        
-        context.beginPath();
-        context.moveTo(x0 - left, y0 - top);
-        context.lineTo(x1 - left, y1 - top);
-        context.strokeStyle = color;
-        context.lineWidth = 3;
-        context.stroke();
-        context.closePath();
+        x0 -= left;
+        y0 -= top;
+
+        if(contextAction === 'draw') {
+            context.beginPath();
+            context.moveTo(x0 - left, y0 - top);
+            context.lineTo(x1 - left, y1 - top);
+            context.strokeStyle = color;
+            context.lineWidth = 3;
+            context.stroke();
+            context.closePath();
+        } else if(contextAction === 'erase') {
+            const eraseSize = current.eraseSize;
+            x0 = x0 - (eraseSize / 2);
+            y0 = y0 - (eraseSize / 2);
+            context.clearRect(x0, y0, eraseSize, eraseSize);
+        }
     }
 
     mouseDownHandler = e => {
@@ -86,7 +98,6 @@ class Canvas extends React.Component {
             if ((time - previousCall) >= delay) {
                 previousCall = time;
                 callback.apply(null, arguments);
-
             }
         };
     }
@@ -103,10 +114,10 @@ class Canvas extends React.Component {
     onInputClick = e => {
         let { inputs } = this.state;
         let { current } = this.props.canvasDatas;
-        const key = e.target.getAttribute('data-key');
+        const key = Number(e.target.getAttribute('data-key'));
         
         const inputsUpdate = inputs.map(input => {
-            if(input.inputKey == key) {
+            if(input.inputKey === key) {
                 let currentLabel = input.label.current;
                 let currentInput = currentLabel.childNodes[1];
                 currentInput.style.color = current.color;
@@ -119,18 +130,14 @@ class Canvas extends React.Component {
         this.setState({ inputs: inputsUpdate });
     }
 
-    dragTest = e => {
-        console.log('dragged');
-    }
-
     inputChangeHandler = e => {
         let { inputs } = this.state;
         const self = e.target;
         const value = self.value.trim();
-        const key = self.getAttribute('data-key');
+        const key = Number(self.getAttribute('data-key'));
 
         const inputsUpdate = inputs.map(input => {
-            if(input.inputKey == key) {
+            if(input.inputKey === key) {
                 let labelContent = input.label.current.childNodes[0];
                 if(value.length > 0) {
                     labelContent.textContent = '';
@@ -145,7 +152,6 @@ class Canvas extends React.Component {
 
     onCreateInput = e => {
         let { inputKey, inputs, labels } = this.state;
-        //const { isDragging, connectDragSource } = this.props;
         let { current } = this.props.canvasDatas;
         this.setState({ labels });
         
@@ -176,7 +182,7 @@ class Canvas extends React.Component {
                 data-key={inputKey}
                 onClick={this.onInputClick}
                 onDragStart={this.dragStartHandler}
-                onDrop={(e) => this.dropHandler(e, "complete")}>
+                onDrop={this.dropHandler}>
                 <span>Input</span>
                 <input
                     id={'input-' + inputKey}
@@ -195,9 +201,7 @@ class Canvas extends React.Component {
         };
         inputKey++;
         inputs = this.state.inputs.concat(input);
-        console.log(inputs)
-        this.setState({ inputs, inputKey });
-        const inputsLength = inputs.length;
+        this.setState({ inputs, inputKey, lastInput: input });
     }
 
     _setState = (value, name) => {
@@ -205,31 +209,45 @@ class Canvas extends React.Component {
         else this.setState({ [value]: value });
     }
 
-    dragOverHandler = e => e.preventDefault();
+    dragOverHandler = (e, type) => {
+        e.preventDefault();
+        if(type !== 'html')this.setState({ draggingOut: false });
+    }
 
     dragStartHandler = e => {
         const id = e.target.getAttribute('data-key');
         e.dataTransfer.setData('key', id);
     }
 
+    dragLeaveHandler = e => {
+        this.setState({ draggingOut: true });
+    }
+
     dropHandler = e => {
         let { inputs } = this.state;
-        const key = e.dataTransfer.getData('key');
+        const key = Number(e.dataTransfer.getData('key'));
+        let inputsUpdate;
 
-        const inputsUpdate = inputs.map(input => {
-            if(input.inputKey == key) {
-                console.log(input)
-                let currentLabel = input.label.current;
-                currentLabel.style.top = e.clientY + 'px';
-                currentLabel.style.left = e.clientX + 'px';
-            }
-            return input;
-        });
+        if(!this.state.draggingOut) {
+            inputsUpdate = inputs.map(input => {
+                if(input.inputKey === key) {
+                    console.log(input)
+                    let currentLabel = input.label.current;
+                    currentLabel.style.top = e.clientY + 'px';
+                    currentLabel.style.left = e.clientX + 'px';
+                }
+                return input;
+            });
+        } else {
+            inputsUpdate = inputs.filter(input => {
+                if(input.inputKey !== key) return input;
+            })
+        }
         this.setState({ inputs: inputsUpdate });
     }
 
     render() {
-        const { actions, canvasDatas } = this.props;
+        const { canvasDatas } = this.props;
         const {
             mouseDownHandler,
             mouseUpHandler,
@@ -237,14 +255,14 @@ class Canvas extends React.Component {
             throttle,
             onCreateInput,
             dragOverHandler,
-            dropHandler
+            dragLeaveHandler
         } = this;
         const { width, height } = canvasDatas;
 
         const inputsElement = this.state.inputs.map(input => input.element);
 
         return (
-            <div>
+            <div className="canvas-container">
                 <canvas
                     className="canvas droppable"
                     id="canvas"
@@ -255,7 +273,7 @@ class Canvas extends React.Component {
                     onMouseMove={throttle(mouseMoveHandler, 10)}
                     onDoubleClick={onCreateInput}
                     onDragOver={dragOverHandler}
-                    onDrop={dropHandler}
+                    onDragLeave={dragLeaveHandler}
                 ></canvas>
                 {inputsElement}
             </div>

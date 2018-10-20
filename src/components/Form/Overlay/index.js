@@ -1,5 +1,4 @@
 import React from 'react';
-import ReactDom from 'react-dom';
 
 import { getPosition } from '../../../utils/';
 
@@ -15,10 +14,14 @@ class Overlay extends React.Component {
             height: '0px',
             inputKey: 0,
             current: {
-                color: 'rgba(0,0,0,1)'
+                color: 'rgba(0,0,0,1)',
+                eraseSize: 10,
+                displayMainLayer: true,
+                displayInputs: true
             },
             inputs: [],
-            labels: []
+            labels: [],
+            contextAction: 'draw'
         }
 
         this.imgRef = React.createRef();
@@ -70,6 +73,12 @@ class Overlay extends React.Component {
         if(name) this.setState({ [name]: value });
         else this.setState({ [value]: value });
     }
+    
+    eraseChangeHandler = e => {
+        const { context } = this.state;
+        if(e.target.checked) this.setState({ contextAction: 'erase' })
+        else this.setState({ contextAction: 'draw' });
+    }
 
     render() {
       const {
@@ -78,16 +87,17 @@ class Overlay extends React.Component {
           setImageTemp,
           setRef,
           _setState,
-          imgRef
+          imgRef,
+          eraseChangeHandler
         } = this;
       const { imageTemp } = this.props;
       const {
           width,
           height,
-          inputs,
           current,
           canvasPositions,
-          context
+          context,
+          contextAction
       } = this.state;
       const canvasActions = {
           onCreateInput,
@@ -99,19 +109,32 @@ class Overlay extends React.Component {
           width,
           height,
           current,
-          context
+          context,
+          contextAction
       }
       const swatchesActions = {
           onAlphaEdit,
-          _setState
+          _setState,
+          eraseChangeHandler
       }
+      const size = {
+          width,
+          height
+      }
+      const overlayContainer = document.getElementsByClassName('overlay-container')[0];
 
         return (
             <div className="overlay-container">
                 <Canvas actions={canvasActions} canvasDatas={canvasDatas} />
                 <img onLoad={setImageTemp} className="draw-on" ref={imgRef} src={imageTemp} alt=""/>
                 
-                <Swatches current={current} actions={swatchesActions} />
+                <Swatches
+                    overlayContainer={overlayContainer}
+                    size={size}
+                    context={context}
+                    current={current}
+                    actions={swatchesActions}
+                />
             </div>
         );
     }

@@ -33,7 +33,7 @@ class Form extends React.Component {
 
     render() {
         const { setView, addImageTemp } = this;
-        const { imageTemp64, checkboxOverlay, view } = this.state;
+        const { imageTemp64, view } = this.state;
 
         return (
             <div>

@@ -4,7 +4,7 @@ import swatches from '../../../data/swatches';
 
 import '../form.scss';
 
-const Swatches = ({ actions, current }) => {
+const Swatches = ({ actions, current, context, size, overlayContainer }) => {
     //const { onColorUpdate, onAlphaEdit } = actions;
     const { _setState } = actions;
 
@@ -54,8 +54,48 @@ const Swatches = ({ actions, current }) => {
         }
     }
 
+    const onEraseSizeEdit = e => {
+        let value = e.target.value.trim();
+        const regex = /^[0-9]+(px)?$/;
+        if(regex.test(value) || value === '') {
+            let size;
+            value = value.replace('px', '');
+            value = Number(value);
+
+            if(value === '') size = 10;
+            else size = value;
+
+            if(value > 100) size = 100;
+            else if(value < 16) size = 10;
+
+            current.eraseSize = size;
+            _setState(current);
+        }
+    }
+
+    const resetCanvas = e => {
+        const { height, width } = size;
+        context.clearRect(0, 0, width, height)
+    }
+
+    const inputsLayer = e => {
+        if(current.displayInputs) overlayContainer.classList.add('hideInputs');
+        else overlayContainer.classList.remove('hideInputs');
+
+        current.displayInputs = !current.displayInputs;
+        _setState(current)
+    }
+
+    const mainLayer = e => {
+        if(current.displayMainLayer) context.canvas.classList.add('hide');
+        else context.canvas.classList.remove('hide');
+
+        current.displayMainLayer = !current.displayMainLayer;
+        _setState(current)
+    }
+
     return (
-        <div className="colors color-picker-panel">
+        <div style={{color: 'white'}} className="colors color-picker-panel">
             <div className="panel-row">
                 <div className="swatches default-swatches">
                     {swatches.map(swatch => (
@@ -79,6 +119,23 @@ const Swatches = ({ actions, current }) => {
                         placeholder="16px"
                         type="text"
                         onChange={onTextSizeEdit} />
+                    <label style={{color: 'white'}} htmlFor="erase">Erase</label>
+                    <input onChange={actions.eraseChangeHandler} type="checkbox" name="erase" id="erase" />
+                    <br />
+                    <label style={{color: 'white'}} htmlFor="size">Erase size</label>
+                    <input
+                        id="eraseSize"
+                        placeholder="10px"
+                        type="text"
+                        onChange={onEraseSizeEdit} />
+                    <br />
+                    <button onClick={resetCanvas} id="reset">Reset</button>
+                    <br />
+                    <label htmlFor="inputsLayer">Display text</label>
+                    <input checked={current.displayInputs} onChange={inputsLayer} type="checkbox" name="inputsLayer" id="inputsLayer" />
+                    <br />
+                    <label htmlFor="mainLayer">Display draw</label>
+                    <input checked={current.displayMainLayer} onChange={mainLayer} type="checkbox" name="mainLayer" id="mainLayer" />
                 </div>
             </div>
         </div>
