@@ -26,7 +26,6 @@ class Overlay extends React.Component {
     }
 
     componentDidMount = () => {
-        console.log(this.canvas)
         this.setSize();
         this.setState({
             context: this.canvas.getContext('2d'),
@@ -35,7 +34,6 @@ class Overlay extends React.Component {
     }
 
     setSize = () => {
-        console.log(this.imgRef)
         const img = this.imgRef.current;
         
         img.addEventListener('load', () => {
@@ -43,86 +41,6 @@ class Overlay extends React.Component {
             const width = img.offsetWidth;
             this.setState({ width: width, height: height });
         })
-    }
-
-    drawLine = (x0, y0, x1, y1, color, emit) => {
-        const { context, canvasPositions } = this.state;
-        const { top, left } = canvasPositions;
-        
-        context.beginPath();
-        context.moveTo(x0 - left, y0 - top);
-        context.lineTo(x1 - left, y1 - top);
-        context.strokeStyle = color;
-        context.lineWidth = 3;
-        context.stroke();
-        context.closePath();
-    }
-
-    mouseDownHandler = e => {
-        this.setState({drawing: true});
-        const current = this.state.current;
-        current.x = e.clientX;
-        current.y = e.clientY;
-        this.setState({current});
-    }
-
-    mouseUpHandler = e => {
-        const { drawing, current } = this.state;
-        if (!drawing) return;
-        this.setState({drawing: false});
-        this.drawLine(current.x, current.y, e.clientX, e.clientY, current.color, true);
-    }
-
-    mouseMoveHandler = e => {
-        const { drawing, current } = this.state;
-        if (!drawing) return;
-        this.drawLine(current.x, current.y, e.clientX, e.clientY, current.color, true);
-        current.x = e.clientX;
-        current.y = e.clientY;
-        this.setState({current});
-    }
-
-    throttle(callback, delay) {
-        let previousCall = new Date().getTime();
-        return function() {
-            let time = new Date().getTime();
-
-            if ((time - previousCall) >= delay) {
-                previousCall = time;
-                callback.apply(null, arguments);
-
-            }
-        };
-    }
-
-    onColorUpdate = e => {
-        const current = this.state.current;
-        if(e) current.color = e.target.className.split(' ')[3];
-
-        if(current.alpha) {
-            const colorParts = current.color.split(',');
-            const newColor = colorParts[0] + ',' + colorParts[1] + ',' + colorParts[2] + ',' + current.alpha + ')'
-            current.color = newColor;
-        }
-        this.setState({current});
-    }
-
-    onAlphaEdit = e => {
-        const {value} = e.target;
-        const regex = /^[0-1]([,|.][0-9]+)?$/;
-        if(regex.test(value) || value === '') {
-            const current = this.state.current;
-            let alpha;
-
-            if(value === '') alpha = '1';
-            else alpha = value.replace(',', '.');
-
-            current.alpha = alpha;
-            this.setState({current});
-            this.onColorUpdate();
-        } else {
-            console.log('not a valid alpha')
-        }
     }
 
     onCreateInput = e => {
@@ -146,35 +64,16 @@ class Overlay extends React.Component {
         this.setState({inputs, inputKey});
     }
 
-    onInputClick = e => {
-        const self = e.target;
-        console.log(self)
-        let { current, inputs } = this.state;
-        const key = self.getAttribute('data-key');
-        inputs = inputs.map(input => {
-            if(input.inputKey == key) {
-                let currentLabel = input.label.current;
-                currentLabel.childNodes[1].style.color = current.color;
-                currentLabel.style.color = current.color;
-            }
-            return input;
-        });
-        this.setState({ inputs });
-    }
-
     setRef = ref => this.canvas = ref;
 
-    _setState = (name, value) => this.setState({ [name]: value });
+    _setState = (value, name) => {
+        if(name) this.setState({ [name]: value });
+        else this.setState({ [value]: value });
+    }
 
     render() {
       const {
           onAlphaEdit,
-          onColorUpdate,
-          mouseDownHandler,
-          mouseUpHandler,
-          mouseOutHandler,
-          throttle,
-          mouseMoveHandler,
           onCreateInput,
           setImageTemp,
           setRef,
@@ -182,31 +81,37 @@ class Overlay extends React.Component {
           imgRef
         } = this;
       const { imageTemp } = this.props;
-      const { width, height, inputs } = this.state;
-      const inputsElement = inputs.map(input => input.element);
+      const {
+          width,
+          height,
+          inputs,
+          current,
+          canvasPositions,
+          context
+      } = this.state;
       const canvasActions = {
-          mouseDownHandler,
-          mouseUpHandler,
-          mouseOutHandler,
-          throttle,
-          mouseMoveHandler,
           onCreateInput,
           setRef,
           _setState
       }
+      const canvasDatas = {
+          canvasPositions,
+          width,
+          height,
+          current,
+          context
+      }
       const swatchesActions = {
           onAlphaEdit,
-          onColorUpdate,
           _setState
       }
 
         return (
             <div className="overlay-container">
-                <Canvas actions={canvasActions} width={width} height={height} />
-                {inputsElement}
+                <Canvas actions={canvasActions} canvasDatas={canvasDatas} />
                 <img onLoad={setImageTemp} className="draw-on" ref={imgRef} src={imageTemp} alt=""/>
                 
-                <Swatches actions={swatchesActions} />
+                <Swatches current={current} actions={swatchesActions} />
             </div>
         );
     }
