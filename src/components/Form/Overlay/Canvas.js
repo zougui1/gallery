@@ -1,15 +1,14 @@
 import React from 'react';
+import uploadcare from 'uploadcare-widget'
 
 import '../form.scss';
 
+import { b64ToBlob } from '../../../utils/';
+
+// import { getPosition } from '../../../utils/';
+
 //import CanvasField from './CanvasField';
 
-/*function collect(connect, monitor) {
-    return {
-        connectDragSource: connect.dragSource(),
-        isDragging: monitor.isDragging()
-    };
-}*/
 
 class Canvas extends React.Component {
 
@@ -32,11 +31,22 @@ class Canvas extends React.Component {
     }
 
     componentDidUpdate = () => {
-        let { lastInput } = this.state;
+        let { lastInput, lastFocused } = this.state;
+        let { current } = this.props.canvasDatas;
         if(lastInput) {
             lastInput.label.current.focus();
             lastInput = '';
             this.setState({ lastInput });
+        }
+        if(lastFocused) {
+            const label = lastFocused[0].label.current;
+            const input =  label.childNodes[1];
+            setTimeout(() => {
+                label.style.color = current.color;
+                input.style.color = current.color;
+                input.style.borderColor = current.color;
+                this.setState({ lastFocused: '' });
+            }, 50);
         }
     }
 
@@ -48,7 +58,7 @@ class Canvas extends React.Component {
 
         if(contextAction === 'draw') {
             context.beginPath();
-            context.moveTo(x0 - left, y0 - top);
+            context.moveTo(x0, y0);
             context.lineTo(x1 - left, y1 - top);
             context.strokeStyle = color;
             context.lineWidth = 3;
@@ -186,10 +196,12 @@ class Canvas extends React.Component {
                 <span>Input</span>
                 <input
                     id={'input-' + inputKey}
-                    style={{borderColor: current.color}}
+                    style={{borderColor: current.color, color: current.color, fontSize: '16px'}}
                     data-key={inputKey}
                     className="canvas-input"
                     onChange={this.inputChangeHandler}
+                    onFocus={this.focusInputHandler}
+                    onBlur={this.blurInputHandler}
                 />
             </label>
         );
@@ -203,6 +215,16 @@ class Canvas extends React.Component {
         inputs = this.state.inputs.concat(input);
         this.setState({ inputs, inputKey, lastInput: input });
     }
+
+    focusInputHandler = e => {
+        const key = Number(e.target.getAttribute('data-key'));
+        const { inputs } = this.state;
+
+        const input = inputs.filter(input => input.inputKey === key);
+        this.setState({ lastFocused: input });
+    }
+
+    blurInputHandler = () => setTimeout(() => this.setState({ lastFocused: null }), 100);
 
     _setState = (value, name) => {
         if(name) this.setState({ [name]: value });
@@ -231,7 +253,6 @@ class Canvas extends React.Component {
         if(!this.state.draggingOut) {
             inputsUpdate = inputs.map(input => {
                 if(input.inputKey === key) {
-                    console.log(input)
                     let currentLabel = input.label.current;
                     currentLabel.style.top = e.clientY + 'px';
                     currentLabel.style.left = e.clientX + 'px';
@@ -246,6 +267,63 @@ class Canvas extends React.Component {
         this.setState({ inputs: inputsUpdate });
     }
 
+    /**
+     * @var {Array} inputs
+     * @var {Object} input
+     * @var {Object} input.element
+     * @var {Number} input.inputKey
+     * @var {Object} input.label
+     * @var {HTMLLabelElement} input.label.current
+     */
+    uploadHandler = e => {
+        const { canvas, imgRef } = this.props.canvasDatas;
+        const textCanvas = this.createTextCanvas();
+        this.uploader(b64ToBlob(imgRef.current.src), 'image');
+        canvas.toBlob(blob => this.uploader(blob, 'draw'));
+
+        if(textCanvas)
+            textCanvas.toBlob(blob => this.uploader(blob, 'text'));
+        else this.props.actions._setState(false, 'hasTextCanvas');
+    }
+
+    uploader = (image, type) => {
+        const file = uploadcare.fileFrom('object', image);
+        
+        file.done(file => {
+            let { images, actions } = this.props;
+            images[type] = file.uuid;
+            console.log(images);
+            actions._setState(images);
+        });
+    }
+
+    createTextCanvas = () => {
+        const { width, height } = this.props.canvasDatas;
+        const { inputs } = this.state;
+        
+        let canvas = document.createElement('canvas');
+        let context = canvas.getContext('2d');
+        canvas.width = width;
+        canvas.height = height;
+
+        if(inputs.length > 0) {
+            inputs.forEach(label => {
+                label = label.label.current;
+                const style = label.style;
+                const input = label.childNodes[1];
+                let fontSize = input.style.fontSize.replace('px', '');
+                fontSize = Number(fontSize) + 3 + 'px';
+                const left = Number(style.left.replace('px', ''));
+                const top = Number(style.top.replace('px', ''));
+
+                context.fillStyle = style.color;
+                context.font = fontSize + ' sans-serif';
+                context.fillText(input.value, left, top);
+            });
+            return canvas;
+        }
+    }
+
     render() {
         const { canvasDatas } = this.props;
         const {
@@ -255,14 +333,15 @@ class Canvas extends React.Component {
             throttle,
             onCreateInput,
             dragOverHandler,
-            dragLeaveHandler
+            dragLeaveHandler,
+            uploadHandler
         } = this;
         const { width, height } = canvasDatas;
 
         const inputsElement = this.state.inputs.map(input => input.element);
 
         return (
-            <div className="canvas-container">
+            <div className="canvas-container" onDragLeave={dragLeaveHandler} onDragOver={dragOverHandler}>
                 <canvas
                     className="canvas droppable"
                     id="canvas"
@@ -272,10 +351,10 @@ class Canvas extends React.Component {
                     onMouseUp={mouseUpHandler}
                     onMouseMove={throttle(mouseMoveHandler, 10)}
                     onDoubleClick={onCreateInput}
-                    onDragOver={dragOverHandler}
-                    onDragLeave={dragLeaveHandler}
                 ></canvas>
                 {inputsElement}
+
+                <button onClick={uploadHandler}>Upload</button>(doesn't work yet)
             </div>
         );
     }

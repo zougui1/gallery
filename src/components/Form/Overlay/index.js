@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { getPosition } from '../../../utils/';
+import { emit } from '../../../socket/upload';
 
 import Swatches from './Swatches';
 import Canvas from './Canvas';
@@ -21,7 +22,9 @@ class Overlay extends React.Component {
             },
             inputs: [],
             labels: [],
-            contextAction: 'draw'
+            contextAction: 'draw',
+            images: {},
+            hasTextCanvas: true
         }
 
         this.imgRef = React.createRef();
@@ -30,10 +33,29 @@ class Overlay extends React.Component {
 
     componentDidMount = () => {
         this.setSize();
+        const positions = getPosition(this.imgRef.current);
         this.setState({
             context: this.canvas.getContext('2d'),
-            canvasPositions: getPosition(this.canvas)
-        })
+            canvasPositions: positions
+        });
+        this.canvas.style.top = positions.top + 'px';
+        this.canvas.style.left = positions.left + 'px';
+    }
+
+    componentDidUpdate = () => {
+        const { images, hasTextCanvas } = this.state;
+        console.log(hasTextCanvas)
+        let tempArr = [];
+        for (const key in images) {
+            if (images[key]) {
+                tempArr.push(1);
+                console.log(tempArr.length)
+            }
+        }
+        if(tempArr.length === 3 && hasTextCanvas)
+            emit.uploadImage(images);
+        else if(tempArr.length === 2 && !hasTextCanvas)
+            emit.uploadImage(images);
     }
 
     setSize = () => {
@@ -75,7 +97,6 @@ class Overlay extends React.Component {
     }
     
     eraseChangeHandler = e => {
-        const { context } = this.state;
         if(e.target.checked) this.setState({ contextAction: 'erase' })
         else this.setState({ contextAction: 'draw' });
     }
@@ -88,7 +109,8 @@ class Overlay extends React.Component {
           setRef,
           _setState,
           imgRef,
-          eraseChangeHandler
+          eraseChangeHandler,
+          canvas
         } = this;
       const { imageTemp } = this.props;
       const {
@@ -97,7 +119,9 @@ class Overlay extends React.Component {
           current,
           canvasPositions,
           context,
-          contextAction
+          contextAction,
+          lastFocused,
+          images
       } = this.state;
       const canvasActions = {
           onCreateInput,
@@ -110,7 +134,9 @@ class Overlay extends React.Component {
           height,
           current,
           context,
-          contextAction
+          contextAction,
+          canvas,
+          imgRef
       }
       const swatchesActions = {
           onAlphaEdit,
@@ -125,7 +151,7 @@ class Overlay extends React.Component {
 
         return (
             <div className="overlay-container">
-                <Canvas actions={canvasActions} canvasDatas={canvasDatas} />
+                <Canvas images={images} actions={canvasActions} canvasDatas={canvasDatas} />
                 <img onLoad={setImageTemp} className="draw-on" ref={imgRef} src={imageTemp} alt=""/>
                 
                 <Swatches
@@ -134,6 +160,7 @@ class Overlay extends React.Component {
                     context={context}
                     current={current}
                     actions={swatchesActions}
+                    lastFocused={lastFocused}
                 />
             </div>
         );

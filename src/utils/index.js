@@ -9,3 +9,27 @@ export const getPosition = e => {
     }
     return {top, left};
 }
+
+export const b64ToBlob = (imageUrlB64, sliceSize) => {
+    const block = imageUrlB64.split(';');
+    const contentType = block[0].split(':')[1];
+    const b64Data = block[1].split(',')[1];
+    sliceSize = sliceSize || 512;
+
+    const byteCharacters = atob(b64Data);
+    let byteArrays = [];
+
+    for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
+        let slice = byteCharacters.slice(offset, offset + sliceSize);
+        let byteNumbers = new Array(slice.length);
+        for (let i = 0; i < slice.length; i++) {
+            byteNumbers[i] = slice.charCodeAt(i);
+        }
+        
+        let byteArray = new Uint8Array(byteNumbers);
+        byteArrays.push(byteArray);
+    }
+
+    const blob = new Blob(byteArrays, { type: contentType });
+    return blob;
+}

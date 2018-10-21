@@ -5,13 +5,15 @@ import Overlay from './Overlay';
 
 import './form.scss';
 
+import { on } from '../../socket/upload';
+
 
 class Form extends React.Component {
 
     state = {
         inputFile: React.createRef(),
         view: 'Uploader'
-    }    
+    }
 
     addImageTemp = object => {
         this.setState(object);

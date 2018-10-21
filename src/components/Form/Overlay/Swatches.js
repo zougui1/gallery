@@ -4,7 +4,7 @@ import swatches from '../../../data/swatches';
 
 import '../form.scss';
 
-const Swatches = ({ actions, current, context, size, overlayContainer }) => {
+const Swatches = ({ actions, current, context, size, overlayContainer, lastFocused }) => {
     //const { onColorUpdate, onAlphaEdit } = actions;
     const { _setState } = actions;
 
@@ -136,6 +136,10 @@ const Swatches = ({ actions, current, context, size, overlayContainer }) => {
                     <br />
                     <label htmlFor="mainLayer">Display draw</label>
                     <input checked={current.displayMainLayer} onChange={mainLayer} type="checkbox" name="mainLayer" id="mainLayer" />
+                    
+                    <p>Tips:<br />
+                    you can double click on the image to create an input<br />
+                    you can drag the input out of the image to delete the input</p>
                 </div>
             </div>
         </div>
