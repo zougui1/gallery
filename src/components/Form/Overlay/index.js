@@ -1,30 +1,27 @@
 import React from 'react';
+import { connect } from 'react-redux';
 
 import { getPosition } from '../../../utils/';
 import { emit } from '../../../socket/upload';
+import { changeImageData, changeCurrentCanvasData } from '../../../actions/';
 
 import Swatches from './Swatches';
 import Canvas from './Canvas';
 
-
+const mapStateToProps = state => ({
+    imageData: state.imageData,
+    canvasSize: state.canvasSize,
+    currentCanvasData: state.currentCanvasData,
+    imagesToUpload: state.imagesToUpload,
+});
+const mapDispatchToProps = dispatch => ({ 
+  changeImageData: canvasSize => dispatch(changeImageData(canvasSize)),
+  changeCurrentCanvasData: contextAction => dispatch(changeCurrentCanvasData(contextAction)),
+ });
 class Overlay extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            width: '0px',
-            height: '0px',
-            inputKey: 0,
-            current: {
-                color: 'rgba(0,0,0,1)',
-                eraseSize: 10,
-                displayMainLayer: true,
-                displayInputs: true
-            },
-            inputs: [],
-            labels: [],
-            contextAction: 'draw',
-            images: {},
-            hasTextCanvas: true
         }
 
         this.imgRef = React.createRef();
@@ -32,30 +29,31 @@ class Overlay extends React.Component {
     }
 
     componentDidMount = () => {
+        this.props.changeCurrentCanvasData({
+            ...this.props.currentCanvasData,
+            context: this.canvas.getContext('2d'),
+        });
         this.setSize();
         const positions = getPosition(this.imgRef.current);
-        this.setState({
-            context: this.canvas.getContext('2d'),
-            canvasPositions: positions
-        });
+        this.setState({ canvasPositions: positions });
         this.canvas.style.top = positions.top + 'px';
         this.canvas.style.left = positions.left + 'px';
     }
 
     componentDidUpdate = () => {
-        const { images, hasTextCanvas } = this.state;
-        console.log(hasTextCanvas)
+        const { imagesToUpload, hasTextCanvas } = this.props;
         let tempArr = [];
-        for (const key in images) {
-            if (images[key]) {
+        for (const key in imagesToUpload) {
+            if (imagesToUpload[key]) {
                 tempArr.push(1);
-                console.log(tempArr.length)
             }
         }
-        if(tempArr.length === 3 && hasTextCanvas)
-            emit.uploadImage(images);
-        else if(tempArr.length === 2 && !hasTextCanvas)
-            emit.uploadImage(images);
+        if((tempArr.length === 3 && hasTextCanvas) || (tempArr.length === 2 && !hasTextCanvas)) {
+            const { imageData } = this.props;
+            const imageDataWithCanvas = {...imageData, ...imagesToUpload};
+            console.log('upload')
+            emit.uploadImage(imageDataWithCanvas);
+        }
     }
 
     setSize = () => {
@@ -64,17 +62,22 @@ class Overlay extends React.Component {
         img.addEventListener('load', () => {
             const height = img.offsetHeight;
             const width = img.offsetWidth;
-            this.setState({ width: width, height: height });
+            this.props.changeImageData({
+                ...this.props.imageData,
+                width,
+                height
+            });
         })
     }
 
     onCreateInput = e => {
-        let { inputKey, current, labels } = this.state;
+        let { inputKey, labels } = this.state;
+        let { currentCanvasData } = this.props;
         labels.push(React.createRef());
         this.setState({ labels });
         let label;
         const element = (
-            <label key={inputKey} data-key={inputKey} htmlFor={'input-' + inputKey} ref={labels[inputKey]} style={{top: e.clientY, left: e.clientX, color: current.color}} className="canvas-label" onClick={this.onInputClick}>
+            <label key={inputKey} data-key={inputKey} htmlFor={'input-' + inputKey} ref={labels[inputKey]} style={{top: e.clientY, left: e.clientX, color: currentCanvasData.color}} className="canvas-label" onClick={this.onInputClick}>
                 Input
                 <input id={'input-' + inputKey} data-key={inputKey} className="canvas-input" />
             </label>
@@ -86,80 +89,49 @@ class Overlay extends React.Component {
         };
         inputKey++;
         const inputs = this.state.inputs.concat(input);
-        this.setState({inputs, inputKey});
+        this.setState({ inputs, inputKey });
     }
 
     setRef = ref => this.canvas = ref;
-
-    _setState = (value, name) => {
-        if(name) this.setState({ [name]: value });
-        else this.setState({ [value]: value });
-    }
     
     eraseChangeHandler = e => {
-        if(e.target.checked) this.setState({ contextAction: 'erase' })
-        else this.setState({ contextAction: 'draw' });
+        if(e.target.checked) this.props.changeCurrentCanvasData({
+            ...this.props.currentCanvasData,
+            contextAction: 'erase',
+        });
+        else this.props.changeCurrentCanvasData({
+            ...this.props.currentCanvasData,
+            contextAction: 'draw',
+        });
     }
 
     render() {
       const {
-          onAlphaEdit,
-          onCreateInput,
-          setImageTemp,
           setRef,
-          _setState,
           imgRef,
           eraseChangeHandler,
           canvas
         } = this;
-      const { imageTemp } = this.props;
+      const { imageData, } = this.props;
       const {
-          width,
-          height,
-          current,
           canvasPositions,
-          context,
-          contextAction,
           lastFocused,
-          images
       } = this.state;
-      const canvasActions = {
-          onCreateInput,
-          setRef,
-          _setState
-      }
       const canvasDatas = {
           canvasPositions,
-          width,
-          height,
-          current,
-          context,
-          contextAction,
           canvas,
           imgRef
-      }
-      const swatchesActions = {
-          onAlphaEdit,
-          _setState,
-          eraseChangeHandler
-      }
-      const size = {
-          width,
-          height
       }
       const overlayContainer = document.getElementsByClassName('overlay-container')[0];
 
         return (
             <div className="overlay-container">
-                <Canvas images={images} actions={canvasActions} canvasDatas={canvasDatas} />
-                <img onLoad={setImageTemp} className="draw-on" ref={imgRef} src={imageTemp} alt=""/>
+                <Canvas setRef={setRef} canvasDatas={canvasDatas} />
+                <img className="draw-on" ref={imgRef} src={imageData.imageTemp64} alt=""/>
                 
                 <Swatches
                     overlayContainer={overlayContainer}
-                    size={size}
-                    context={context}
-                    current={current}
-                    actions={swatchesActions}
+                    eraseChangeHandler={eraseChangeHandler}
                     lastFocused={lastFocused}
                 />
             </div>
@@ -167,4 +139,4 @@ class Overlay extends React.Component {
     }
 }
 
-export default Overlay;
+export default connect(mapStateToProps, mapDispatchToProps)(Overlay);

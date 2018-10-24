@@ -1,21 +1,42 @@
 import React from 'react';
 import uploadcare from 'uploadcare-widget'
+import { connect } from 'react-redux';
 
 import '../form.scss';
 
+import { emit } from '../../../socket/upload';
 import { b64ToBlob } from '../../../utils/';
+import {
+    changeCurrentCanvasData,
+    addImageToUpload,
+    addCanvasField,
+    addCanvasLabel,
+    editCanvasField,
+    setCanvasField
+} from '../../../actions/';
 
-// import { getPosition } from '../../../utils/';
+import CanvasField from './CanvasField';
 
-//import CanvasField from './CanvasField';
-
-
+const mapStateToProps = state => ({
+    currentCanvasData: state.currentCanvasData,
+    imageData: state.imageData,
+    imagesToUpload: state.imagesToUpload,
+    inputs: state.inputs,
+    labels: state.labels,
+});
+const mapDispatchToProps = dispatch => ({ 
+  changeCurrentCanvasData: contextAction => dispatch(changeCurrentCanvasData(contextAction)),
+  addImageToUpload: image => dispatch(addImageToUpload(image)),
+  addCanvasField: field => dispatch(addCanvasField(field)),
+  addCanvasLabel: label => dispatch(addCanvasLabel(label)),
+  editCanvasField: (field, id) => dispatch(editCanvasField(field, id)),
+  setCanvasField: field => dispatch(setCanvasField(field)),
+ });
 class Canvas extends React.Component {
 
     constructor(props) {
         super(props);
         this.state = {
-            drawing: false,
             inputKey: 0,
             inputs: [],
             labels: [],
@@ -24,7 +45,7 @@ class Canvas extends React.Component {
     }
 
     componentDidMount = () => {
-        this.props.actions.setRef(document.getElementById('canvas'));
+        this.props.setRef(document.getElementById('canvas'));
         const htmlElement = document.getElementsByTagName('html')[0];
         htmlElement.addEventListener('dragover', e => this.dragOverHandler(e, 'html'));
         htmlElement.addEventListener('drop', this.dropHandler);
@@ -32,8 +53,8 @@ class Canvas extends React.Component {
 
     componentDidUpdate = () => {
         let { lastInput, lastFocused } = this.state;
-        let { current } = this.props.canvasDatas;
-        if(lastInput) {
+        let { currentCanvasData } = this.props;
+        /*if(lastInput) {
             lastInput.label.current.focus();
             lastInput = '';
             this.setState({ lastInput });
@@ -42,16 +63,18 @@ class Canvas extends React.Component {
             const label = lastFocused[0].label.current;
             const input =  label.childNodes[1];
             setTimeout(() => {
-                label.style.color = current.color;
-                input.style.color = current.color;
-                input.style.borderColor = current.color;
+                label.style.color = currentCanvasData.color;
+                input.style.color = currentCanvasData.color;
+                input.style.borderColor = currentCanvasData.color;
                 this.setState({ lastFocused: '' });
             }, 50);
-        }
+        }*/
     }
 
     drawLine = (x0, y0, x1, y1, color, emit) => {
-        const { context, canvasPositions, contextAction, current } = this.props.canvasDatas;
+        const { canvasPositions } = this.props.canvasDatas;
+        const { context, contextAction } = this.props.currentCanvasData;
+        const current = this.props.currentCanvasData;
         const { top, left } = canvasPositions;
         x0 -= left;
         y0 -= top;
@@ -73,34 +96,35 @@ class Canvas extends React.Component {
     }
 
     mouseDownHandler = e => {
-        this.setState({ drawing: true });
-        const current = this.props.canvasDatas.current;
+        const current = this.props.currentCanvasData;
+
         current.x = e.clientX;
         current.y = e.clientY;
-        this.props.actions._setState(current);
+        current.drawing = true;
+        changeCurrentCanvasData(current)
     }
 
     mouseUpHandler = e => {
-        const { drawing } = this.state;
-        const { current } = this.props.canvasDatas;
+        const current = this.props.currentCanvasData;
+        const { drawing } = current;
 
         if (!drawing) return;
-        this.setState({ drawing: false });
+        changeCurrentCanvasData(current.drawing = false)
         this.drawLine(current.x, current.y, e.clientX, e.clientY, current.color, true);
     }
 
     mouseMoveHandler = e => {
-        const { drawing } = this.state;
-        const { current } = this.props.canvasDatas;
+        const current = this.props.currentCanvasData;
+        const { drawing } = current;
 
         if (!drawing) return;
         this.drawLine(current.x, current.y, e.clientX, e.clientY, current.color, true);
         current.x = e.clientX;
         current.y = e.clientY;
-        this.props.actions._setState(current);
+        changeCurrentCanvasData(current)
     }
 
-    throttle(callback, delay) {
+    throttle = (callback, delay) => {
         let previousCall = new Date().getTime();
         return function() {
             let time = new Date().getTime();
@@ -112,165 +136,104 @@ class Canvas extends React.Component {
         };
     }
 
-    setLabel = (key, label) => {
-        let labels = this.state.labels;
-        console.log(label)
-        labels[key] = label;
-        console.log(labels)
-        this.setState({ labels });
-    }
-    
-    //TODO put this function into CanvasField
-    onInputClick = e => {
-        let { inputs } = this.state;
-        let { current } = this.props.canvasDatas;
-        const key = Number(e.target.getAttribute('data-key'));
+    onCreateInput = e => {
+        let { inputKey } = this.state;
+        let { inputs } = this.props;
+        let current = this.props.currentCanvasData;
         
-        const inputsUpdate = inputs.map(input => {
-            if(input.inputKey === key) {
-                let currentLabel = input.label.current;
-                let currentInput = currentLabel.childNodes[1];
-                currentInput.style.color = current.color;
-                currentInput.style.borderColor = current.color;
-                currentInput.style.fontSize = current.size;
-                currentLabel.style.color = current.color;
-            }
-            return input;
-        });
-        this.setState({ inputs: inputsUpdate });
+        const client = {x: e.clientX, y: e.clientY}
+        console.log(this.props.labels)
+        this.props.labels[inputKey] = React.createRef();
+        this.props.addCanvasLabel(this.props.labels);
+        const element2 = (
+            <CanvasField
+                key={inputKey}
+                _key={inputKey}
+                client={client}
+                current={current} />
+        );
+
+        const input = {
+            element: element2,
+            inputKey,
+            label: this.props.labels[inputKey]
+        };
+        inputKey++;
+        inputs = this.props.inputs.concat(input);
+        this.props.addCanvasField(inputs);
+        this.setState({inputKey})
+        //this.setState({ inputs, inputKey, lastInput: input });
     }
 
-    inputChangeHandler = e => {
-        let { inputs } = this.state;
-        const self = e.target;
-        const value = self.value.trim();
-        const key = Number(self.getAttribute('data-key'));
+    /*focusInputHandler = e => {
+        const key = Number(e.target.getAttribute('data-key'));
+        const { inputs } = this.state;
 
         const inputsUpdate = inputs.map(input => {
-            if(input.inputKey === key) {
+            if (input.inputKey === key) {
                 let labelContent = input.label.current.childNodes[0];
-                if(value.length > 0) {
-                    labelContent.textContent = '';
-                } else {
+                labelContent.textContent = '';
+            }
+            return input
+        });
+
+        const input = inputs.filter(input => input.inputKey === key);
+        this.setState({ lastFocused: input, inputs: inputsUpdate });
+    }
+
+    blurInputHandler = e => {
+        setTimeout(() => this.setState({ lastFocused: null }), 100);
+        const key = Number(e.target.getAttribute('data-key'));
+        const { inputs } = this.state;
+
+        const inputsUpdate = inputs.map(input => {
+            if (input.inputKey === key) {
+                let currentLabel = input.label.current;
+                if(currentLabel.childNodes[1].value.length === 0) {
+                    let labelContent = currentLabel.childNodes[0];
                     labelContent.textContent = 'Input';
                 }
             }
             return input
         });
         this.setState({ inputs: inputsUpdate });
-    }
-
-    onCreateInput = e => {
-        let { inputKey, inputs, labels } = this.state;
-        let { current } = this.props.canvasDatas;
-        this.setState({ labels });
-        
-        //TODO puts the label/input into CanvasField and replace it with the code below
-        //const client = {x: e.clientX, y: e.clientY}
-        // inputs={inputs} doesn't work, because when the state is updated only the render function is refreshed
-        // not the functions in the class, so the inputs var is not refreshed after an update
-        /*const element = (
-            <CanvasField
-                key={inputKey}
-                _key={inputKey}
-                client={client}
-                current={current}
-                inputs={inputs}
-                _setState={this._setState}
-                setLabel={this.setLabel} />
-        );*/
-        labels[inputKey] = React.createRef();
-        const element = (
-            <label
-                draggable
-                key={inputKey}
-                ref={labels[inputKey]}
-                htmlFor={'input-' + inputKey}
-                id={'label-' + inputKey}
-                style={{top: e.clientY, left: e.clientX, color: current.color}}
-                className="canvas-label draggable"
-                data-key={inputKey}
-                onClick={this.onInputClick}
-                onDragStart={this.dragStartHandler}
-                onDrop={this.dropHandler}>
-                <span>Input</span>
-                <input
-                    id={'input-' + inputKey}
-                    style={{borderColor: current.color, color: current.color, fontSize: '16px'}}
-                    data-key={inputKey}
-                    className="canvas-input"
-                    onChange={this.inputChangeHandler}
-                    onFocus={this.focusInputHandler}
-                    onBlur={this.blurInputHandler}
-                />
-            </label>
-        );
-
-        const input = {
-            element,
-            inputKey,
-            label: this.state.labels[inputKey]
-        };
-        inputKey++;
-        inputs = this.state.inputs.concat(input);
-        this.setState({ inputs, inputKey, lastInput: input });
-    }
-
-    focusInputHandler = e => {
-        const key = Number(e.target.getAttribute('data-key'));
-        const { inputs } = this.state;
-
-        const input = inputs.filter(input => input.inputKey === key);
-        this.setState({ lastFocused: input });
-    }
-
-    blurInputHandler = () => setTimeout(() => this.setState({ lastFocused: null }), 100);
-
-    _setState = (value, name) => {
-        if(name) this.setState({ [name]: value });
-        else this.setState({ [value]: value });
-    }
+    };*/
 
     dragOverHandler = (e, type) => {
         e.preventDefault();
-        if(type !== 'html')this.setState({ draggingOut: false });
-    }
-
-    dragStartHandler = e => {
-        const id = e.target.getAttribute('data-key');
-        e.dataTransfer.setData('key', id);
+        if(type !== 'html') this.props.changeCurrentCanvasData({ ...this.props.currentCanvasData, draggingOut: false });
     }
 
     dragLeaveHandler = e => {
-        this.setState({ draggingOut: true });
+        this.props.changeCurrentCanvasData({ ...this.props.currentCanvasData, draggingOut: true });
     }
 
     dropHandler = e => {
-        let { inputs } = this.state;
+        let { inputs } = this.props;
         const key = Number(e.dataTransfer.getData('key'));
         let inputsUpdate;
 
-        if(!this.state.draggingOut) {
-            inputsUpdate = inputs.map(input => {
+        if(!this.props.currentCanvasData.draggingOut) {
+            inputs.forEach(input => {
                 if(input.inputKey === key) {
                     let currentLabel = input.label.current;
                     currentLabel.style.top = e.clientY + 'px';
                     currentLabel.style.left = e.clientX + 'px';
+                    this.props.editCanvasField(input, key);
                 }
-                return input;
             });
         } else {
             inputsUpdate = inputs.filter(input => {
                 if(input.inputKey !== key) return input;
             })
+            this.props.setCanvasField(inputsUpdate);
         }
-        this.setState({ inputs: inputsUpdate });
     }
 
     /**
      * @var {Array} inputs
      * @var {Object} input
-     * @var {Object} input.element
+     * @var {Object} input.element-
      * @var {Number} input.inputKey
      * @var {Object} input.label
      * @var {HTMLLabelElement} input.label.current
@@ -283,22 +246,40 @@ class Canvas extends React.Component {
 
         if(textCanvas)
             textCanvas.toBlob(blob => this.uploader(blob, 'text'));
-        else this.props.actions._setState(false, 'hasTextCanvas');
+        else this.props.changeCurrentCanvasData({ ...this.props.currentCanvasData, hasTextCanvas: false });
     }
 
     uploader = (image, type) => {
         const file = uploadcare.fileFrom('object', image);
         
         file.done(file => {
-            let { images, actions } = this.props;
-            images[type] = file.uuid;
-            console.log(images);
-            actions._setState(images);
+            let { imagesToUpload, addImageToUpload } = this.props;
+            console.log('upload')
+            imagesToUpload[type] = file.uuid;
+            addImageToUpload({ ...imagesToUpload, imagesToUpload, });
+            this.uploadToMongo();
         });
     }
 
+    uploadToMongo = () => {
+        const { imagesToUpload, currentCanvasData } = this.props;
+        const { hasTextCanvas } = currentCanvasData
+        let tempArr = [];
+        for (const key in imagesToUpload) {
+            if (imagesToUpload[key]) {
+                tempArr.push(1);
+            }
+        }
+        if((tempArr.length === 3 && hasTextCanvas) || (tempArr.length === 2 && !hasTextCanvas)) {
+            const { imageData } = this.props;
+            const imageDataWithCanvas = {...imageData, ...imagesToUpload};
+            console.log('upload')
+            emit.uploadImage(imageDataWithCanvas);
+        }
+    }
+
     createTextCanvas = () => {
-        const { width, height } = this.props.canvasDatas;
+        const { width, height } = this.props.imageData;
         const { inputs } = this.state;
         
         let canvas = document.createElement('canvas');
@@ -325,7 +306,7 @@ class Canvas extends React.Component {
     }
 
     render() {
-        const { canvasDatas } = this.props;
+        const { imageData } = this.props;
         const {
             mouseDownHandler,
             mouseUpHandler,
@@ -336,13 +317,16 @@ class Canvas extends React.Component {
             dragLeaveHandler,
             uploadHandler
         } = this;
-        const { width, height } = canvasDatas;
+        const { width, height } = imageData;
+        console.log(this.props.inputs)
 
-        const inputsElement = this.state.inputs.map(input => input.element);
+        const inputsElement = this.props.inputs.map(input => input.element);
+        console.log(inputsElement)
 
         return (
-            <div className="canvas-container" onDragLeave={dragLeaveHandler} onDragOver={dragOverHandler}>
+            <div style={{userSelect: 'none'}} className="canvas-container" onDragLeave={dragLeaveHandler} onDragOver={dragOverHandler}>
                 <canvas
+                    style={{userSelect: 'none'}}
                     className="canvas droppable"
                     id="canvas"
                     width={width}
@@ -354,10 +338,10 @@ class Canvas extends React.Component {
                 ></canvas>
                 {inputsElement}
 
-                <button onClick={uploadHandler}>Upload</button>(doesn't work yet)
+                <button style={{userSelect: 'none'}} onClick={uploadHandler}>Upload</button>
             </div>
         );
     }
 }
 
-export default Canvas;
+export default connect(mapStateToProps, mapDispatchToProps)(Canvas);

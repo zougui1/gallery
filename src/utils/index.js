@@ -33,3 +33,5 @@ export const b64ToBlob = (imageUrlB64, sliceSize) => {
     const blob = new Blob(byteArrays, { type: contentType });
     return blob;
 }
+
+export const passwordMatch = (confirmation, state) => (state.password === confirmation);

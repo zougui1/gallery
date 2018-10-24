@@ -16,24 +16,12 @@ const configs = [
 
 module.exports = configName => {
     switch (configName) {
-        case 'server':
-            return server;
-            break;
-        case 'db':
-            return db;
-            break;
-        case 'cache':
-            return cache;
-            break;
-        case 'socket':
-            return socket;
-            break;
-        case 'api':
-            return api;
-            break;
-        case 'aws':
-            return aws;
-            break;
+        case 'server': return server;
+        case 'db': return db;
+        case 'cache': return cache;
+        case 'socket': return socket;
+        case 'api': return api;
+        case 'aws': return aws;
     
         default:
             console.error(`Config name error, config called: "${configName}".`.red);

@@ -7,7 +7,11 @@ const imageSchema = mongoose.Schema({
         draw: String
     },
     tags: Array,
-    artist: String
+    isNsfw: Boolean,
+    artistName: String,
+    artistLink: String,
+    characterName: String,
+    userId: String
 });
 
 module.exports = mongoose.model('Image', imageSchema);

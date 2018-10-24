@@ -1,21 +1,27 @@
 import React from 'react';
+import { connect } from 'react-redux';
 
 import swatches from '../../../data/swatches';
+import { changeCurrentCanvasData } from '../../../actions/';
 
 import '../form.scss';
 
-const Swatches = ({ actions, current, context, size, overlayContainer, lastFocused }) => {
-    //const { onColorUpdate, onAlphaEdit } = actions;
-    const { _setState } = actions;
+const mapStateToProps = state => ({currentCanvasData: state.currentCanvasData, imageData: state.imageData });
+const mapDispatchToProps = dispatch => ({ 
+  changeCurrentCanvasData: currentCanvasData => dispatch(changeCurrentCanvasData(currentCanvasData)),
+ });
+const Swatches = ({ eraseChangeHandler, overlayContainer, imageData, currentCanvasData, changeCurrentCanvasData }) => {
+
+    const updateCurrentCanvasData = () => changeCurrentCanvasData(currentCanvasData);
 
     const onColorUpdate = (e, color) => {
-        if(e) current.color = color;
+        if(e) {currentCanvasData.color = color; currentCanvasData.color = color;}
 
-        if(current.alpha) {
-            let newColor = current.color.replace(/[0-1]+([.][0-9]*)?\)$/, current.alpha + ')');
-            current.color = newColor;
+        if (currentCanvasData.alpha) {
+            let newColor = currentCanvasData.color.replace(/[0-1]+([.][0-9]*)?\)$/, currentCanvasData.alpha + ')');
+            currentCanvasData.color = newColor;
         }
-        _setState(current);
+        updateCurrentCanvasData();
     }
     
     const onAlphaEdit = e => {
@@ -27,11 +33,9 @@ const Swatches = ({ actions, current, context, size, overlayContainer, lastFocus
             if(value === '') alpha = '1';
             else alpha = value.replace(',', '.');
 
-            current.alpha = alpha;
-            _setState(current);
+            currentCanvasData.alpha = alpha;
+            updateCurrentCanvasData();
             onColorUpdate();
-        } else {
-            console.log('not a valid alpha')
         }
     }
 
@@ -49,8 +53,8 @@ const Swatches = ({ actions, current, context, size, overlayContainer, lastFocus
             if(valNum > 100) size = '100px';
             else if(valNum < 16) size = '16px';
 
-            current.size = size;
-            _setState(current);
+            currentCanvasData.fontSize = size;
+            updateCurrentCanvasData();
         }
     }
 
@@ -62,36 +66,33 @@ const Swatches = ({ actions, current, context, size, overlayContainer, lastFocus
             value = value.replace('px', '');
             value = Number(value);
 
-            if(value === '') size = 10;
+            if(value === '') size = 16;
             else size = value;
 
             if(value > 100) size = 100;
-            else if(value < 16) size = 10;
+            else if(value < 16) size = 16;
 
-            current.eraseSize = size;
-            _setState(current);
+            currentCanvasData.eraseSize = size;
+            updateCurrentCanvasData();
         }
     }
 
-    const resetCanvas = e => {
-        const { height, width } = size;
-        context.clearRect(0, 0, width, height)
-    }
+    const resetCanvas = e => currentCanvasData.context.clearRect(0, 0, imageData.width, imageData.height);
 
     const inputsLayer = e => {
-        if(current.displayInputs) overlayContainer.classList.add('hideInputs');
+        if(currentCanvasData.displayInputs) overlayContainer.classList.add('hideInputs');
         else overlayContainer.classList.remove('hideInputs');
 
-        current.displayInputs = !current.displayInputs;
-        _setState(current)
+        currentCanvasData.displayInputs = !currentCanvasData.displayInputs;
+        updateCurrentCanvasData();
     }
 
     const mainLayer = e => {
-        if(current.displayMainLayer) context.canvas.classList.add('hide');
-        else context.canvas.classList.remove('hide');
+        if (currentCanvasData.displayMainLayer) currentCanvasData.context.canvas.classList.add('hide');
+        else currentCanvasData.context.canvas.classList.remove('hide');
 
-        current.displayMainLayer = !current.displayMainLayer;
-        _setState(current)
+        currentCanvasData.displayMainLayer = !currentCanvasData.displayMainLayer;
+        updateCurrentCanvasData();
     }
 
     return (
@@ -120,7 +121,7 @@ const Swatches = ({ actions, current, context, size, overlayContainer, lastFocus
                         type="text"
                         onChange={onTextSizeEdit} />
                     <label style={{color: 'white'}} htmlFor="erase">Erase</label>
-                    <input onChange={actions.eraseChangeHandler} type="checkbox" name="erase" id="erase" />
+                    <input onChange={eraseChangeHandler} type="checkbox" name="erase" id="erase" />
                     <br />
                     <label style={{color: 'white'}} htmlFor="size">Erase size</label>
                     <input
@@ -132,10 +133,10 @@ const Swatches = ({ actions, current, context, size, overlayContainer, lastFocus
                     <button onClick={resetCanvas} id="reset">Reset</button>
                     <br />
                     <label htmlFor="inputsLayer">Display text</label>
-                    <input checked={current.displayInputs} onChange={inputsLayer} type="checkbox" name="inputsLayer" id="inputsLayer" />
+                    <input checked={currentCanvasData.displayInputs} onChange={inputsLayer} type="checkbox" name="inputsLayer" id="inputsLayer" />
                     <br />
                     <label htmlFor="mainLayer">Display draw</label>
-                    <input checked={current.displayMainLayer} onChange={mainLayer} type="checkbox" name="mainLayer" id="mainLayer" />
+                    <input checked={currentCanvasData.displayMainLayer} onChange={mainLayer} type="checkbox" name="mainLayer" id="mainLayer" />
                     
                     <p>Tips:<br />
                     you can double click on the image to create an input<br />
@@ -146,4 +147,4 @@ const Swatches = ({ actions, current, context, size, overlayContainer, lastFocus
     );
 }
 
-export default Swatches;
+export default connect(mapStateToProps, mapDispatchToProps)(Swatches);
