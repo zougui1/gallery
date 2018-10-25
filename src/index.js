@@ -1,14 +1,14 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
-import App from './components/App/';
-import Form from './components/Form/';
+import App from './components/App';
+import Form from './components/Form';
 import * as serviceWorker from './serviceWorker';
 import { BrowserRouter, Route } from 'react-router-dom';
-import Signup from './components/Signup/';
-import Login from './components/Login/';
+import Signup from './components/Signup';
+import Login from './components/Login';
 import ProtectedRoute from './components/ProtectedRoute';
-import store from "./store/";
+import store from "./store";
 import { Provider } from 'react-redux';
 
 const Root = () => (

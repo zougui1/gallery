@@ -1,37 +1,8 @@
-export const getPosition = e => {
-    var left = 0;
-    var top = 0;
+import { _getPosition, _b64ToBlob, _passwordMatch } from './other';
+import { _mapDynamicDispatch, _mapDynamicState } from './redux';
 
-    while (e.offsetParent !== undefined && e.offsetParent != null) {
-        left += e.offsetLeft + (e.clientLeft != null ? e.clientLeft : 0);
-        top += e.offsetTop + (e.clientTop != null ? e.clientTop : 0);
-        e = e.offsetParent;
-    }
-    return {top, left};
-}
-
-export const b64ToBlob = (imageUrlB64, sliceSize) => {
-    const block = imageUrlB64.split(';');
-    const contentType = block[0].split(':')[1];
-    const b64Data = block[1].split(',')[1];
-    sliceSize = sliceSize || 512;
-
-    const byteCharacters = atob(b64Data);
-    let byteArrays = [];
-
-    for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
-        let slice = byteCharacters.slice(offset, offset + sliceSize);
-        let byteNumbers = new Array(slice.length);
-        for (let i = 0; i < slice.length; i++) {
-            byteNumbers[i] = slice.charCodeAt(i);
-        }
-        
-        let byteArray = new Uint8Array(byteNumbers);
-        byteArrays.push(byteArray);
-    }
-
-    const blob = new Blob(byteArrays, { type: contentType });
-    return blob;
-}
-
-export const passwordMatch = (confirmation, state) => (state.password === confirmation);
+export { _mapDynamicState as mapDynamicState };
+export { _mapDynamicDispatch as mapDynamicDispatch };
+export { _getPosition as getPosition };
+export { _b64ToBlob as b64ToBlob };
+export { _passwordMatch as passwordMatch };

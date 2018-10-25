@@ -1,28 +1,31 @@
 import React from 'react';
+import { connect } from 'react-redux';
+import { Redirect } from 'react-router';
 
 import './login.scss';
 
 import { on, emit } from '../../socket/login';
 import { fields, validations } from '../../data/loginFields';
-import FormValidator from '../FormValidator/';
-import Field from '../Field/';
-import auth from '../../services/auth';
+import FormValidator from '../FormValidator';
+import Field from '../Field';
+import { mapDynamicState } from '../../utils';
+import { login } from '../../actions';
 
+const mapStateToProps = mapDynamicState(['loggedUsername']);
+const mapDispatchToProps = (dispatch) => ({ 
+  login: (username) => dispatch(login(username)),
+});
 class Signup extends React.Component {
 
-    constructor() {
-        super();
+    validator = new FormValidator(validations);
+    submitted = false;
 
-        this.validator = new FormValidator(validations);
-
-        this.state = {
-            username: '',
-            password: '',
-            validation: this.validator.valid(),
-            errorMessage: ''
-        }
-
-        this.submitted = false;
+    state = {
+        username: '',
+        password: '',
+        validation: this.validator.valid(),
+        errorMessage: '',
+        logged: false
     }
 
     handleInputChange = e => {
@@ -39,16 +42,18 @@ class Signup extends React.Component {
         const validation = this.validator.validate(this.state);
         this.setState({ validation });
         this.submitted = true;
+        if(!this.state.username) console.log('t')
 
         if (validation.isValid) {
             const { username, password } = this.state;
             emit.login({ username, password });
             on.logged(() => {
-                window.location = '/upload';
-                auth.isAuthenticated = true;
+                this.props.login(username);
+                localStorage.setItem('username', username);
+                this.setState({logged: true});
             });
-            on.passwordIncorrect(message => this.setState({ errorMessage: message }));
-            on.userNotFound(message => this.setState({ errorMessage: message }));
+            on.passwordIncorrect((message) => this.setState({ errorMessage: message }));
+            on.userNotFound((message) => this.setState({ errorMessage: message }));
         }
     }
 
@@ -76,10 +81,13 @@ class Signup extends React.Component {
                     <br />
                     <span className="userError">{this.state.errorMessage}</span>
                 </form>
+                {this.state.logged
+                    ? <Redirect to="/upload" />
+                    : false}
             </div>
         );
     }
 
 }
 
-export default Signup;
+export default connect(mapStateToProps, mapDispatchToProps)(Signup);

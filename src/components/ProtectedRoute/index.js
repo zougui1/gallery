@@ -1,13 +1,15 @@
 import React from 'react';
 import { Route, Redirect } from 'react-router-dom';
-import auth from '../../services/auth';
+import { connect } from 'react-redux';
+import { mapDynamicState } from '../../utils/';
 
-const ProtectedRoute = ({ component: Component, ...rest }) => (
+const mapStateToProps = mapDynamicState(['loggedUsername']);
+const ProtectedRoute = ({ component: Component, loggedUsername, ...rest }) => (
     <Route {...rest} render={props => (
-        auth.isAuthenticated
+        loggedUsername || localStorage.getItem('username')
             ? <Component {...props} />
             : <Redirect to='/login' />
     )} />
 );
 
-export default ProtectedRoute;
+export default connect(mapStateToProps)(ProtectedRoute);

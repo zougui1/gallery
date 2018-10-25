@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import './app.scss';
 
-import Form from '../Form/';
+import Form from '../Form';
 
 
 class App extends Component {

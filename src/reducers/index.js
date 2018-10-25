@@ -8,6 +8,7 @@ import {
     SET_CANVAS_FIELD,
     ADD_CANVAS_LABEL,
     EDIT_CANVAS_LABEL,
+    LOGIN,
 } from '../constants/action-types';
 
 const initialState = {
@@ -29,6 +30,7 @@ const initialState = {
     imagesToUpload: {},
     inputs: [],
     labels: [],
+    loggedUsername: '',
 };
 
 const rootReducer = (state = initialState, action) => {
@@ -59,7 +61,6 @@ const rootReducer = (state = initialState, action) => {
                     inputs: action.payload
                 };
             case EDIT_CANVAS_FIELD:
-            console.log(state.inputs)
                 const updatedInputs = state.inputs.map(input => {
                     if(input.inputKey == action.payload.id) input = action.payload.element;
                     return input;
@@ -86,6 +87,12 @@ const rootReducer = (state = initialState, action) => {
                 return {
                     ...state,
                     labels: updatedLabels
+                };
+            case LOGIN:
+                console.log(action)
+                return {
+                    ...state,
+                    loggedUsername: action.payload
                 };
     
         default:

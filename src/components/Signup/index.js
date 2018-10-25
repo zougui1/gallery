@@ -4,26 +4,24 @@ import './signup.scss';
 
 import { on, emit } from '../../socket/signup';
 import { fields, validations } from '../../data/signupFields';
-import FormValidator from '../FormValidator/';
-import Field from '../Field/';
+import FormValidator from '../FormValidator';
+import Field from '../Field/index';
 
 class Signup extends React.Component {
 
-    constructor() {
-        super();
+    state = {
+        username: '',
+        password: '',
+        confirmPassword: '',
+        validation: null,
+        usernameAlreadyUsed: false,
+        userCreated: false,
+        validator: new FormValidator(validations),
+        submitted: false
+    }
 
-        this.validator = new FormValidator(validations);
-
-        this.state = {
-            username: '',
-            password: '',
-            confirmPassword: '',
-            validation: this.validator.valid(),
-            usernameAlreadyUsed: false,
-            userCreated: false
-        }
-
-        this.submitted = false;
+    componentDidMount = () => {
+        this.setState({ validation: this.state.validator.valid() });
     }
 
     passwordMatch = (confirmation, state) => (state.password === confirmation);
@@ -39,21 +37,20 @@ class Signup extends React.Component {
     submitHandler = e => {
         e.preventDefault();
         
-        const validation = this.validator.validate(this.state);
-        this.setState({ validation });
-        this.submitted = true;
+        const validation = this.state.validator.validate(this.state);
+        this.setState({ validation, submitted: true });
 
         if (validation.isValid) {
             const { username, password } = this.state;
             emit.signup({ username, password });
-            on.usernameAlreadyUsed(message => this.setState(message));
-            on.userCreated(() => window.location = '/');
+            on.usernameAlreadyUsed((message) => this.setState(message));
+            //on.userCreated(() => window.location = '/');
         }
     }
 
     render() {
-        let validation = this.submitted ?
-                         this.validator.validate(this.state) :
+        let validation = this.state.submitted ?
+                         this.state.validator.validate(this.state) :
                          this.state.validation 
 
         return (
