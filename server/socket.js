@@ -1,6 +1,6 @@
 const io = require('./config/')('socket');
 const aws = require('./services/aws');
-const mongoose = require('./services/mongoose');
+const mongoose = require('./mongoose/index');
 
 io.on('connection', socket => {
     console.log('socket on');
@@ -25,5 +25,25 @@ io.on('connection', socket => {
                     : socket.emit('passwordIncorrect', 'The password is incorrect.');
             })
         }).catch(() => socket.emit('userNotFound', 'User not found.'));
+    })
+
+    socket.on('retrieveImagesByUser', username => { mongoose.getAllImagesByUser(username)
+        .then(images => socket.emit('retrieveImagesFromDB', images))
+        .catch(err => console.error(err))
+    })
+
+    socket.on('getImageById', id => { mongoose.getImageById(id)
+        .then(image => socket.emit('getImageFromDB', image))
+        .catch(err => console.log(err))
+    })
+
+    socket.on('createTag', tags => { mongoose.setTags(tags, mongoose.getAllTags())
+        .then(tags => console.log('tag  created'))
+        .catch(console.log)
+    })
+
+    socket.on('getAllTags', () => {mongoose.getAllTags()
+        .then(tags => socket.emit('retrieveAllTagsFromDB', tags))
+        .catch(console.log)
     })
 });

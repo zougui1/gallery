@@ -3,17 +3,18 @@ import { connect } from 'react-redux';
 
 import { getPosition } from '../../../utils/';
 import { emit } from '../../../socket/upload';
-import { changeImageData, changeCurrentCanvasData } from '../../../actions/';
+import { uploader } from '../../../store/actions/';
+import { mapDynamicState } from '../../../utils';
 
 import Swatches from './Swatches';
 import Canvas from './Canvas';
 
-const mapStateToProps = state => ({
-    imageData: state.imageData,
-    canvasSize: state.canvasSize,
-    currentCanvasData: state.currentCanvasData,
-    imagesToUpload: state.imagesToUpload,
-});
+const {
+    changeImageData,
+    changeCurrentCanvasData,
+} = uploader;
+
+const mapStateToProps = mapDynamicState('imageData canvasSize currentCanvasData imagesToUpload', 'uploader');
 const mapDispatchToProps = dispatch => ({ 
   changeImageData: canvasSize => dispatch(changeImageData(canvasSize)),
   changeCurrentCanvasData: contextAction => dispatch(changeCurrentCanvasData(contextAction)),

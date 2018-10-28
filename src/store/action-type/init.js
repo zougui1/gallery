@@ -1,0 +1,1 @@
+export const SET_TAGS_LIST = 'SET_TAGS_LIST';

@@ -2,11 +2,16 @@ import React from 'react';
 import { connect } from 'react-redux';
 
 import swatches from '../../../data/swatches';
-import { changeCurrentCanvasData } from '../../../actions/';
+import { uploader } from '../../../store/actions';
+import { mapDynamicState } from '../../../utils';
 
 import '../form.scss';
 
-const mapStateToProps = state => ({currentCanvasData: state.currentCanvasData, imageData: state.imageData });
+const {
+    changeCurrentCanvasData,
+} = uploader;
+
+const mapStateToProps = mapDynamicState('currentCanvasData imageData', 'uploader');
 const mapDispatchToProps = dispatch => ({ 
   changeCurrentCanvasData: currentCanvasData => dispatch(changeCurrentCanvasData(currentCanvasData)),
  });

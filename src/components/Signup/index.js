@@ -1,4 +1,6 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
+import Button from '@material-ui/core/Button';
 
 import './signup.scss';
 
@@ -22,6 +24,7 @@ class Signup extends React.Component {
 
     componentDidMount = () => {
         this.setState({ validation: this.state.validator.valid() });
+        this.setState({ render:true })
     }
 
     passwordMatch = (confirmation, state) => (state.password === confirmation);
@@ -55,23 +58,31 @@ class Signup extends React.Component {
 
         return (
             <div>
-                <form onSubmit={this.submitHandler}>
-                    {fields.map(field => (
-                        <Field
-                            key={field.field}
-                            field={field.field}
-                            content={field.content}
-                            type={field.type || 'text'}
-                            validation={validation}
-                            handleInputChange={this.handleInputChange}
-                        />
-                    ))}
+                {
+                    this.state.render
+                    ? (
+                        <form onSubmit={this.submitHandler}>
+                            {fields.map(field => (
+                                <Field
+                                    key={field.field}
+                                    field={field.field}
+                                    content={field.content}
+                                    type={field.type || 'text'}
+                                    validation={validation}
+                                    handleInputChange={this.handleInputChange}
+                                />
+                            ))}
 
-                    
-                    <button type="submit">Signup</button>
-                    <br />
-                    <span className="userError">{this.state.usernameAlreadyUsed}</span>
-                </form>
+                            
+                            <Button variant="contained" color="primary" type="submit">Signup</Button>
+                            <br />
+                            <span className="userError">{this.state.usernameAlreadyUsed}</span>
+                            <br/>
+                            <Link to="/login">You already have an account?</Link>
+                        </form>
+                    )
+                    : ''
+                }
             </div>
         );
     }

@@ -1,24 +1,13 @@
 import socket from './config.js';
 
 export const on = {
-    retrieveImage: callback => {
-        //socket.on('retrieveImage', image => callback(image));
-        socket.on('retrieveImage', image => console.log(image));
-    },
-
-    
     retrieveAllTagsFromDB: callback => {
-        //socket.on('retrieveAllTagsFromDB', console.log);
+        //socket.on('retrieveImage', image => callback(image));
         socket.on('retrieveAllTagsFromDB', tags => callback(tags));
     }
 }
 
 export const emit = {
-    uploadImage: data => {
-        socket.emit('uploadImage', data);
-    },
-
-    
     getAllTags: data => {
         socket.emit('getAllTags');
     },

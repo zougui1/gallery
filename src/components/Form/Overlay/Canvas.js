@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import uploadcare from 'uploadcare-widget'
 import { connect } from 'react-redux';
 
@@ -7,18 +7,20 @@ import '../form.scss';
 import { emit } from '../../../socket/upload';
 import { b64ToBlob } from '../../../utils';
 import { mapDynamicState } from '../../../utils';
-import {
+import { uploader } from '../../../store/actions';
+
+import CanvasField from './CanvasField';
+
+const {
     changeCurrentCanvasData,
     addImageToUpload,
     addCanvasField,
     addCanvasLabel,
     editCanvasField,
-    setCanvasField
-} from '../../../actions';
+    setCanvasField,
+} = uploader;
 
-import CanvasField from './CanvasField';
-
-const mapStateToProps = mapDynamicState(['currentCanvasData', 'imageData', 'imagesToUpload', 'inputs', 'labels'])
+const mapStateToProps = mapDynamicState('currentCanvasData imageData imagesToUpload inputs labels', 'uploader');
 const mapDispatchToProps = dispatch => ({ 
   addCanvasField: field => dispatch(addCanvasField(field)),
   addCanvasLabel: label => dispatch(addCanvasLabel(label)),
@@ -27,10 +29,12 @@ const mapDispatchToProps = dispatch => ({
   editCanvasField: (field, id) => dispatch(editCanvasField(field, id)),
   setCanvasField: field => dispatch(setCanvasField(field)),
  });
+//const mapDispatchToProps = mapDynamicDispatch([[changeCurrentCanvasData], [addImageToUpload], [addCanvasField], [addCanvasLabel], editCanvasField, setCanvasField])
 class Canvas extends React.Component {
 
     constructor(props) {
         super(props);
+        console.log(props)
         this.state = {
             inputKey: 0,
         }
@@ -196,8 +200,9 @@ class Canvas extends React.Component {
         
         fileUp.done(file => {
             let { imagesToUpload, addImageToUpload } = this.props;
+            console.log(file)
             
-            imagesToUpload[type] = file.uuid;
+            imagesToUpload[type] = file.uuid + '/original';
             addImageToUpload({ ...imagesToUpload, imagesToUpload, });
             this.uploadToMongo();
         });
@@ -222,7 +227,7 @@ class Canvas extends React.Component {
 
     createTextCanvas = () => {
         const { width, height } = this.props.imageData;
-        const { inputs } = this.state;
+        const { inputs } = this.props;
         
         let canvas = document.createElement('canvas');
         let context = canvas.getContext('2d');
@@ -286,4 +291,4 @@ class Canvas extends React.Component {
     }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(Canvas);
+export default connect(mapStateToProps)(Canvas);

@@ -1,4 +1,5 @@
 import React from 'react';
+import TextField from '@material-ui/core/TextField';
 
 class Field extends React.Component {
 
@@ -10,12 +11,12 @@ class Field extends React.Component {
         const { field, type, content, validation, handleInputChange } = this.props;
 
         return (
-            <label htmlFor={field}>
-                <input onChange={handleInputChange} name={field} placeholder={content} id={field} type={type} />
+            <span>
+                <TextField onChange={handleInputChange} name={field} label={content} id={field} type={type} />
                 <br />
-                <span className="help-block">{validation[field].message}</span>
+                {validation ? <span className="help-block">{validation[field].message}</span> : ''}
                 <br />
-            </label>
+            </span>
         );
     }
 }

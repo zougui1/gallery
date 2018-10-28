@@ -1,6 +1,7 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { Redirect } from 'react-router';
+import Button from '@material-ui/core/Button';
 
 import './login.scss';
 
@@ -9,9 +10,13 @@ import { fields, validations } from '../../data/loginFields';
 import FormValidator from '../FormValidator';
 import Field from '../Field';
 import { mapDynamicState } from '../../utils';
-import { login } from '../../actions';
+import { auth } from '../../store/actions';
 
-const mapStateToProps = mapDynamicState(['loggedUsername']);
+const {
+    login,
+} = auth;
+
+const mapStateToProps = mapDynamicState('loggedUsername', 'auth');
 const mapDispatchToProps = (dispatch) => ({ 
   login: (username) => dispatch(login(username)),
 });
@@ -77,7 +82,7 @@ class Signup extends React.Component {
                     ))}
 
                     
-                    <button type="submit">Login</button>
+                    <Button variant="contained" color="primary" type="submit">Login</Button>
                     <br />
                     <span className="userError">{this.state.errorMessage}</span>
                 </form>

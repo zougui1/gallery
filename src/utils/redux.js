@@ -1,6 +1,7 @@
-export const _mapDynamicState = array => state => {
+export const _mapDynamicState = (stateList, reducerName) => state => {
     let tempState = {};
-    array.forEach(element => tempState[element] = state[element]);
+    if(!Array.isArray(stateList)) stateList = stateList.split(' ');
+    stateList.forEach(element => tempState[element] = state[reducerName + 'Reducer'][element]);
     return tempState;
 }
 

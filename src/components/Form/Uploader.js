@@ -1,24 +1,56 @@
 import React from 'react'
 import uploadcare from 'uploadcare-widget';
-import { connect } from 'react-redux';
-import { changeFormView, changeImageData } from '../../actions/';
+import Button from '@material-ui/core/Button';
+import Checkbox from '@material-ui/core/Checkbox';
+import TextField from '@material-ui/core/TextField';
+import TagsInput from '../TagsInput';
 
-import { emit } from '../../socket/upload';
+import { connect } from 'react-redux';
+import { uploader } from '../../store/actions';
+import { mapDynamicState, inArray } from '../../utils';
+
+import { emit, on } from '../../socket/upload';
+import { fields } from '../../data/uploaderFields';
+import Field from '../Field';
+
+const {
+  changeFormView,
+  changeImageData,
+} = uploader;
+
+
+const mapStateToProps = mapDynamicState('tagsList', 'init');
 
 const mapDispatchToProps = dispatch => ({ 
   changeFormView: view => dispatch(changeFormView(view)),
   changeImageData: imageData => dispatch(changeImageData(imageData)),
  });
 
+
+
 class Uploader extends React.Component {
 
   state = {
-    checkboxOverlay: React.createRef(),
-    artistNameInput: React.createRef(),
-    artistLinkInput: React.createRef(),
-    characterNameInput: React.createRef(),
-    tagsSelect: React.createRef(),
+    overlayCheckbox: React.createRef(),
+    artistName: '',
+    artistLink: '',
+    characterName: '',
+    tags: [],
+    tagsSelect: '',
     nsfwCheckbox: React.createRef(),
+    tagsList: [],
+    tagsFiltered: [],
+    isAutoCompletion: false,
+    chipsArea: React.createRef(),
+    chipIndex: 0,
+    chipsRef: [],
+    overlay: false,
+    nsfw: false,
+    tagsInputActive: false,
+  }
+
+  componentDidMount = () => {
+    emit.createTags(['Fullbody', 'Wings', 'Legs', 'Head', 'Neck', 'Arms', 'Back', 'Tail']);
   }
 
   handleFiles = e => {
@@ -28,71 +60,131 @@ class Uploader extends React.Component {
 
   submitHandler = e => {
     e.preventDefault();
-    const { file, checkboxOverlay, artistNameInput, artistLinkInput, characterNameInput, nsfwCheckbox, tagsSelect } = this.state;
-    const formData = {
-      artistName: artistNameInput.current.value,
-      artistLink: artistLinkInput.current.value,
-      characterName: characterNameInput.current.value,
-      tag: tagsSelect.current.value,
-      isNsfw: nsfwCheckbox.current.checked,
-    }
-    
-    if(!checkboxOverlay.current.checked) {
-      const fileUpload = uploadcare.fileFrom('object', file);
+    const { file, overlay, artistName, artistLink, characterName, nsfw, tags, tagsInputActive } = this.state;
+    if(!this.state.isAutoCompletion && !tagsInputActive && file) {
+      const tagsName = tags.map(tag => tag.value);
+      const { tagsList } = this.props;
+      const formData = {
+        artistName: artistName,
+        artistLink: artistLink,
+        characterName: characterName,
+        tags: tagsName,
+        isNsfw: nsfw,
+      }
       
-      fileUpload.done(file => emit.uploadImage({...formData, image: file.uuid}));
-    } else {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
+      const newTags = tagsName.filter(tag => !inArray(tag, tagsList, 'value'));
 
-      reader.addEventListener('load', () => {
-        this.props.changeImageData({ 
-          ...formData,
-          imageTemp64: reader.result
+      if(!overlay) {
+        const fileUpload = uploadcare.fileFrom('object', file);
+        
+        fileUpload.done(file => {emit.uploadImage({...formData, image: file.uuid + '/' + file.sourceInfo.file.name});console.log(file)});
+        if(newTags.length > 0) emit.createTags(newTags);
+      } else {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+
+        reader.addEventListener('load', () => {
+          this.props.changeImageData({ 
+            ...formData,
+            imageTemp64: reader.result
+          });
+          this.props.changeFormView('Overlay');
         });
-        this.props.changeFormView('Overlay');
-      });
+      }
     }
   }
 
+  handleInputChange = e => {
+    e.preventDefault();
+
+    this.setState({
+      [e.target.name]: e.target.value
+    });
+  }
+
+  handleCheckboxChange = name => () => {
+    const checkboxElement = this.state[name + 'Checkbox'];
+    const checked = checkboxElement.current.props.checked;
+
+    this.setState({
+      [name]: !checked
+    });
+  }
+  
+  handleTagsInputChange = tags => this.setState({ tags });
+
+  handleTagsInputFocus = () => this.setState({ tagsInputActive: true });
+  handleTagsInputBlur = () => this.setState({ tagsInputActive: false });
+
+
   render() {
-    const { checkboxOverlay, artistNameInput, artistLinkInput, characterNameInput, nsfwCheckbox, tagsSelect } = this.state;
-    const { submitHandler } = this;
+    const { overlayCheckbox, nsfwCheckbox, tags, overlay, nsfw } = this.state;
+    const {
+      submitHandler,
+      handleCheckboxChange,
+      handleTagsInputChange,
+      handleInputChange,
+      handleTagsInputFocus,
+      handleTagsInputBlur,
+    } = this;
 
     return (
       <div>
-        <form onSubmit={submitHandler}>
-          <input type="checkbox" name="overlay" value="true" id="overlay" ref={checkboxOverlay} />
-          <label htmlFor="overlay">Draw an overlay?</label><br />
+        <form>
+          <label htmlFor="overlay">Draw an overlay?</label>
+          <Checkbox
+            onClick={handleCheckboxChange('overlay')}
+            onChange={handleCheckboxChange('overlay')}
+            checked={overlay}
+            name="overlay"
+            value="true"
+            id="overlay"
+            ref={overlayCheckbox}
+          /><br/>
 
-          <label htmlFor="artistName">Artist name</label>
-          <input type="text" id="artistName" name="artistName" ref={artistNameInput} /><br />
+          {fields.map(field => (
+            <Field
+                key={field.field}
+                field={field.field}
+                content={field.content}
+                type={field.type || 'text'}
+                handleInputChange={handleInputChange}
+                onChange={handleTagsInputFocus}
+                onFocus={handleTagsInputBlur}
+            />
+          ))}
 
-          <label htmlFor="artistLink">Artist link</label>
-          <input type="text" id="artistLink" name="artistLink" ref={artistLinkInput} /><br />
 
-          <label htmlFor="characterName">Character name</label>
-          <input type="text" id="characterName" name="characterName" ref={characterNameInput} /><br />
+          <TagsInput tags={tags} handleChange={handleTagsInputChange} />
 
-          <label htmlFor="tag">Tag</label>
-          <select name="tag" id="tag" ref={tagsSelect}>
-            <option value="head">Head</option>
-            <option value="neckBackTail">Neck, Back, and Tail</option>
-            <option value="shouldersArmsHands">Shoulders, Arms, and Hands</option>
-            <option value="legs">Legs</option>
-            <option value="wings">Wings</option>
-          </select>
 
-          <label htmlFor="isNsfw">NSFW</label>
-          <input type="checkbox" name="isNsfw" id="isNsfw" value="true" ref={nsfwCheckbox} />
+          <br/>
+          <label htmlFor="nsfw">NSFW</label>
+          <Checkbox
+            onClick={handleCheckboxChange('nsfw')}
+            onChange={handleCheckboxChange('nsfw')}
+            checked={nsfw}
+            name="nsfw"
+            id="nsfw"
+            value="true"
+            ref={nsfwCheckbox}
+          />
 
-          <input id="image" type="file" accept="image/*" onChange={files => this.handleFiles(files)} />
+          <br/>
+          <input style={{display: 'none'}} id="image" type="file" accept="image/*" onChange={files => this.handleFiles(files)} />
+          <label htmlFor="image">
+            <Button variant="contained" component="span">
+              Upload
+            </Button>
+          </label>
+
           <br />
-          <button type="submit">Submit</button>
+          <br />
+          <Button onClick={submitHandler} variant="contained" type="submit">Submit</Button>
         </form>
       </div>
     );
   }
 }
 
-export default connect(null, mapDispatchToProps)(Uploader);
+export default connect(mapStateToProps, mapDispatchToProps)(Uploader);

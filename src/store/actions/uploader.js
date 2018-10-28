@@ -1,4 +1,6 @@
-import {
+import { uploader } from '../action-type';
+
+const {
     CHANGE_FORM_VIEW,
     CHANGE_IMAGE_DATA,
     CHANGE_CURRENT_CANVAS_DATA,
@@ -8,8 +10,7 @@ import {
     SET_CANVAS_FIELD,
     ADD_CANVAS_LABEL,
     EDIT_CANVAS_LABEL,
-    LOGIN,
-} from '../constants/action-types';
+} = uploader;
 
 export const changeFormView = viewName => ({ type: CHANGE_FORM_VIEW, payload: viewName });
 export const changeImageData = imageData => ({ type: CHANGE_IMAGE_DATA, payload: imageData });
@@ -20,5 +21,3 @@ export const editCanvasField = (field, id) => ({ type: EDIT_CANVAS_FIELD, payloa
 export const setCanvasField = fields => ({ type: SET_CANVAS_FIELD, payload: fields });
 export const addCanvasLabel = label => ({ type: ADD_CANVAS_LABEL, payload: label });
 export const editCanvasLabel = (label, id) => ({ type: EDIT_CANVAS_LABEL, payload: { element: label, id: id } });
-export const login = username => ({ type: LOGIN, payload: username });
-window.changeFormView = changeFormView;

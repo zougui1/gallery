@@ -1,33 +1,25 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import './index.css';
-import App from './components/App';
-import Form from './components/Form';
 import * as serviceWorker from './serviceWorker';
-import { BrowserRouter, Route } from 'react-router-dom';
-import Signup from './components/Signup';
-import Login from './components/Login';
-import ProtectedRoute from './components/ProtectedRoute';
-import store from "./store";
+import { BrowserRouter } from 'react-router-dom';
 import { Provider } from 'react-redux';
+
+import './index.css';
+import store from "./store";
+import Navbar from './components/Navbar';
+import Router from './Router';
 
 const Root = () => (
     <Provider store={store}>
         <BrowserRouter>
             <div>
-                <Route exact path="/" component={App} />
-                <Route exact path="/upload" component={Form} />
-                <Route exact path="/signup" component={Signup} />
-                <Route exact path="/login" component={Login} />
+                <Navbar />
+                <Router />
             </div>
         </BrowserRouter>
     </Provider>
 );
 
-//TODO
-/*
-    <ProtectedRoute exact path="/upload" component={Form} />
-    <Route exact path="/user/:username" component={User} />*/
 
 ReactDOM.render(<Root />, document.getElementById('root'));
 

@@ -2,11 +2,15 @@ import React from 'react';
 import { connect } from 'react-redux';
 
 import '../form.scss';
-import { editCanvasLabel, editCanvasField } from '../../../actions/';
+import { uploader } from '../../../store/actions/';
 import { mapDynamicState } from '../../../utils/';
 
+const {
+    editCanvasLabel,
+    editCanvasField,
+} = uploader;
 
-const mapStateToProps = mapDynamicState(['currentCanvasData', 'imageData', 'imagesToUpload', 'inputs', 'labels']);
+const mapStateToProps = mapDynamicState('currentCanvasData imageData imagesToUpload inputs labels', 'uploader');
 const mapDispatchToProps = dispatch => ({ 
   editCanvasLabel: (label, id) => dispatch(editCanvasLabel(label, id)),
   editCanvasField: (field, id) => dispatch(editCanvasField(field, id)),

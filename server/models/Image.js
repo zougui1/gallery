@@ -11,7 +11,8 @@ const imageSchema = mongoose.Schema({
     artistName: String,
     artistLink: String,
     characterName: String,
-    userId: String
+    userId: String,
+    username: String,
 });
 
 module.exports = mongoose.model('Image', imageSchema);

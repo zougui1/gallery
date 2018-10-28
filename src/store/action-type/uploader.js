@@ -7,4 +7,3 @@ export const EDIT_CANVAS_FIELD = 'EDIT_CANVAS_FIELD';
 export const SET_CANVAS_FIELD = 'SET_CANVAS_FIELD';
 export const ADD_CANVAS_LABEL = 'ADD_CANVAS_LABEL';
 export const EDIT_CANVAS_LABEL = 'EDIT_CANVAS_LABEL';
-export const LOGIN = 'LOGIN';
