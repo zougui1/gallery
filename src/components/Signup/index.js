@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, Redirect } from 'react-router-dom';
 import Button from '@material-ui/core/Button';
 
 import './signup.scss';
@@ -47,7 +47,7 @@ class Signup extends React.Component {
             const { username, password } = this.state;
             emit.signup({ username, password });
             on.usernameAlreadyUsed((message) => this.setState(message));
-            //on.userCreated(() => window.location = '/');
+            on.userCreated(() => this.setState({ userCreated: true }));
         }
     }
 
@@ -57,11 +57,12 @@ class Signup extends React.Component {
                          this.state.validation 
 
         return (
-            <div>
+            <div style={{display: 'flex', justifyContent: 'center', textAlign: 'center'}}>
                 {
                     this.state.render
                     ? (
                         <form onSubmit={this.submitHandler}>
+                            <h1>Signup</h1>
                             {fields.map(field => (
                                 <Field
                                     key={field.field}
@@ -79,6 +80,11 @@ class Signup extends React.Component {
                             <span className="userError">{this.state.usernameAlreadyUsed}</span>
                             <br/>
                             <Link to="/login">You already have an account?</Link>
+                            {
+                                this.state.userCreated
+                                ? <Redirect to="/login" />
+                                : ''
+                            }
                         </form>
                     )
                     : ''

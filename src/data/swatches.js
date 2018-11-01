@@ -33,19 +33,19 @@ const swatches = [
     },
     {
         id: 9,
-        color: 'rgba(238,84,100,1)'
-    },
-    {
-        id: 10,
         color: 'rgba(210,122,238,1)'
     },
     {
-        id: 11,
+        id: 10,
         color: 'rgba(91,168,196,1)'
     },
     {
-        id: 12,
+        id: 11,
         color: 'rgba(230,74,169,1)'
+    },
+    {
+        id: 12,
+        color: 'erase'
     }
 ];
 

@@ -68,8 +68,9 @@ class Signup extends React.Component {
                          this.state.validation 
 
         return (
-            <div>
+            <div style={{display: 'flex', justifyContent: 'center', textAlign: 'center'}}>
                 <form onSubmit={this.submitHandler}>
+                    <h1>Login</h1>
                     {fields.map(field => (
                         <Field
                             key={field.field}
@@ -87,7 +88,7 @@ class Signup extends React.Component {
                     <span className="userError">{this.state.errorMessage}</span>
                 </form>
                 {this.state.logged
-                    ? <Redirect to="/upload" />
+                    ? <Redirect to="/" />
                     : false}
             </div>
         );

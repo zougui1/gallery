@@ -3,11 +3,13 @@ import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
 
 
-import { mapDynamicState } from '../../utils';
+import { mapDynamicState, getPosition } from '../../utils';
 import { gallery } from '../../store/actions';
+import Pagination from '../Pagination';
 
 const {
   getFilteredImages,
+  setCurrentPage,
 } = gallery;
 
 //const mapStateToProps = mapDynamicState('showOverlay filteredImages', 'gallery');
@@ -17,11 +19,11 @@ const mapStateToProps = state => ({
   state: state,
 })
 
-class Images extends Component {
+const mapDispatchToProps = dispatch => ({
+  setCurrentPage: currentPage => dispatch(setCurrentPage(currentPage)),
+});
 
-  componentDidMount = () => {
-    console.log(this.props.filteredImages)
-  }
+class Images extends Component {  
 
   renderOverlays = image => {
     const { showOverlay } = this.props;
@@ -39,26 +41,33 @@ class Images extends Component {
     }
   }
 
+  resizeContainer = e => {
+    const self = e.target;
+    const width = self.offsetWidth;
+    self.offsetParent.style.width = `${width}px`;
+  }
+
   render() {
     const filteredImages = getFilteredImages(this.props.state);
-
+    
     return (
       <div className="images">
-        {filteredImages.map(image => (
-            <div key={image._id} className="image-container">
-                <Link to={'/image/' + image._id}>
-                  <div className="overlay-container">
-                    <img className="image mainImage" src={'https://ucarecdn.com/' + image.image} alt="" />
-                    <span className="overlays">
+        <div>
+          {filteredImages.map((image, i) => (
+              <div key={image._id} className="image-container">
+                  <Link to={'/image/' + image._id}>
+                      <img onLoad={this.resizeContainer} className="image mainImage" src={'https://ucarecdn.com/' + image.image} alt="" />
                       {this.renderOverlays(image)}
-                    </span>
-                  </div>
-                </Link>
-            </div>
-        ))}
+                  </Link>
+              </div>
+          ))}
+        </div>
+        <div className="pagination">
+          <Pagination currentPage={this.props.page} basePath={`/user/${this.props.username}`} />
+        </div>
       </div>
     )
   }
 }
 
-export default connect(mapStateToProps)(Images);
+export default connect(mapStateToProps, mapDispatchToProps)(Images);

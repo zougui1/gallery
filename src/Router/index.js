@@ -17,6 +17,7 @@ const Router = () => (
         <Route exact path="/signup" component={Signup} />
         <Route exact path="/login" component={Login} />
         <Route exact path="/user/:username" component={User} />
+        <Route exact path="/user/:username/:page" component={User} />
         <Route exact path="/image/:id" component={Image} />
     </div>
 );

@@ -5,7 +5,7 @@ export const fields = [
     },
     {
         field: 'artistLink',
-        content: 'Artist link',
+        content: 'Artist link'
     },
     {
         field: 'characterName',

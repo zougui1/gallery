@@ -1,7 +1,8 @@
 const {
-    getAllImagesByUser,
+    getImagesByUser,
     getImageById,
     setImage,
+    getImagesByUserAndTags,
 } = require('./Image');
 const {
     signup,
@@ -17,9 +18,10 @@ const {
 exports.signup = signup;
 exports.login = login;
 // Image model request
-exports.getAllImagesByUser = getAllImagesByUser;
+exports.getImagesByUser = getImagesByUser;
 exports.getImageById = getImageById;
 exports.setImage = setImage;
+exports.getImagesByUserAndTags = getImagesByUserAndTags;
 // Tags model request
 exports.getAllTags = getAllTags;
 exports.setTags = setTags;

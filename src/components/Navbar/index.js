@@ -20,9 +20,18 @@ export class index extends Component {
         <AppBar position="static" style={{backgroundColor: '#2196f3'}}>
             <ToolBar>
                 <Typography variant="h6" color="inherit">
-                    Dorg's gallery
+                    <Link style={{color: '#fff'}} to="/">Dorg's gallery</Link>
                 </Typography>
                 <div style={{position: 'absolute', right: '10px'}}>
+                  {
+                    loggedUsername
+                    ? (
+                        <Button>
+                          <Link style={{color: '#fff'}} to={'/upload'}>Upload an image</Link>
+                        </Button>
+                      )
+                    : ''
+                  }
                   <Button>
                     {
                       loggedUsername

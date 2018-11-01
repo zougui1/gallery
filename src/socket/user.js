@@ -8,15 +8,19 @@ export const on = {
 
     getImageFromDB: callback => {
         socket.on('getImageFromDB', image => callback(image));
-    }
+    },
 }
 
 export const emit = {
-    retrieveImagesByUser: username => {
-        socket.emit('retrieveImagesByUser', username);
+    retrieveImagesByUser: req => {
+        socket.emit('retrieveImagesByUser', req);
     },
 
     getImageById: id => {
         socket.emit('getImageById', id);
+    },
+
+    getImagesByUserAndTags: req => {
+        socket.emit('getImagesByUserAndTags', req);
     }
 }

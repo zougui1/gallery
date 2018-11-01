@@ -1,6 +1,7 @@
 import React from 'react';
 import uploadcare from 'uploadcare-widget'
 import { connect } from 'react-redux';
+import Button from '@material-ui/core/Button';
 
 import '../form.scss';
 
@@ -29,12 +30,10 @@ const mapDispatchToProps = dispatch => ({
   editCanvasField: (field, id) => dispatch(editCanvasField(field, id)),
   setCanvasField: field => dispatch(setCanvasField(field)),
  });
-//const mapDispatchToProps = mapDynamicDispatch([[changeCurrentCanvasData], [addImageToUpload], [addCanvasField], [addCanvasLabel], editCanvasField, setCanvasField])
 class Canvas extends React.Component {
 
     constructor(props) {
         super(props);
-        console.log(props)
         this.state = {
             inputKey: 0,
         }
@@ -45,6 +44,7 @@ class Canvas extends React.Component {
         const htmlElement = document.getElementsByTagName('html')[0];
         htmlElement.addEventListener('dragover', e => this.dragOverHandler(e, 'html'));
         htmlElement.addEventListener('drop', this.dropHandler);
+        htmlElement.style.overflow = 'hidden';
     }
 
     drawLine = (x0, y0, x1, y1, color) => {
@@ -114,10 +114,11 @@ class Canvas extends React.Component {
 
     onCreateInput = e => {
         let { inputKey } = this.state;
-        let { inputs } = this.props;
+        let { inputs, canvasDatas } = this.props;
         let current = this.props.currentCanvasData;
+        const { top, left } = canvasDatas.canvasPositions;
         
-        const client = {x: e.clientX, y: e.clientY}
+        const client = {x: e.clientX - left, y: e.clientY - top}
         this.props.labels[inputKey] = React.createRef();
         this.props.addCanvasLabel(this.props.labels);
         const element2 = (
@@ -194,7 +195,6 @@ class Canvas extends React.Component {
         }
     }
 
-    /* tslint no-shadow */
     uploader = (image, type) => {
         const fileUp = uploadcare.fileFrom('object', image);
         
@@ -265,30 +265,30 @@ class Canvas extends React.Component {
             uploadHandler
         } = this;
         const { width, height } = imageData;
-        console.log(this.props.inputs)
+        console.log(width, height)
 
         const inputsElement = this.props.inputs.map(input => input.element);
-        console.log(inputsElement)
 
         return (
-            <div style={{userSelect: 'none'}} className="canvas-container" onDragLeave={dragLeaveHandler} onDragOver={dragOverHandler}>
-                <canvas
-                    style={{userSelect: 'none'}}
-                    className="canvas droppable"
-                    id="canvas"
-                    width={width}
-                    height={height}
-                    onMouseDown={mouseDownHandler}
-                    onMouseUp={mouseUpHandler}
-                    onMouseMove={throttle(mouseMoveHandler, 10)}
-                    onDoubleClick={onCreateInput}
-                ></canvas>
-                {inputsElement}
-
-                <button style={{userSelect: 'none'}} onClick={uploadHandler}>Upload</button>
+            <div>
+                <div style={{userSelect: 'none'}} className="canvas-container" onDragLeave={dragLeaveHandler} onDragOver={dragOverHandler}>
+                    <canvas
+                        style={{userSelect: 'none'}}
+                        className="canvas droppable"
+                        id="canvas"
+                        width={width}
+                        height={height}
+                        onMouseDown={mouseDownHandler}
+                        onMouseUp={mouseUpHandler}
+                        onMouseMove={throttle(mouseMoveHandler, 10)}
+                        onDoubleClick={onCreateInput}
+                    ></canvas>
+                    {inputsElement}
+                </div>
+                <Button variant="contained" color="primary" style={{userSelect: 'none', position: 'absolute', bottom: '-89.5vh', fontWeight: 'bold', marginLeft: '10px'}} onClick={uploadHandler}>Upload</Button>
             </div>
         );
     }
 }
 
-export default connect(mapStateToProps)(Canvas);
+export default connect(mapStateToProps, mapDispatchToProps)(Canvas);

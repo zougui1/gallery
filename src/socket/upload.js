@@ -2,13 +2,11 @@ import socket from './config.js';
 
 export const on = {
     retrieveImage: callback => {
-        //socket.on('retrieveImage', image => callback(image));
-        socket.on('retrieveImage', image => console.log(image));
+        socket.on('retrieveImage', image => callback(image));
     },
 
     
     retrieveAllTagsFromDB: callback => {
-        //socket.on('retrieveAllTagsFromDB', console.log);
         socket.on('retrieveAllTagsFromDB', tags => callback(tags));
     }
 }

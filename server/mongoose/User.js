@@ -10,6 +10,5 @@ exports.signup = user => {
 }
 
 exports.login = user => {
-    return User.findOne({ username: user.username }, (err, userinDB) => {
-    })
+    return User.findOne({ username: user.username })
 }

@@ -1,33 +1,30 @@
 .left {
-    width: 70%;
+    width: 65%;
+    margin-left: 10%;
 
-    .images {
+    .images > div {
         display: flex;
         flex-wrap: wrap;
     }
 }
 
+.color-picker-panel .MuiTypography-root-41 {
+    color: #fff;
+}
+
 .image-container {
     margin: 5px;
-    min-width: 150px;
-    min-height: 150px;
-    max-width: 100%;
-    max-height: 24vh;
-    position: static;
-    display: block;
+    height: 150px;
+    position: relative;
 
     .image {
-        min-width: 150px;
-        min-height: 150px;
-        max-width: 100%;
-        max-height: 24vh;
-        position: absolute;
-    }
-    .overlay {
+        height: 150px;
         position: absolute;
     }
 }
 
-.overlay-container {
-    position: relative;
+.pagination {
+    display: flex;
+    justify-content: center;
+    padding-bottom: 15px;
 }

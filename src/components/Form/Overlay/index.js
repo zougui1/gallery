@@ -95,8 +95,8 @@ class Overlay extends React.Component {
 
     setRef = ref => this.canvas = ref;
     
-    eraseChangeHandler = e => {
-        if(e.target.checked) this.props.changeCurrentCanvasData({
+    eraseChangeHandler = checked => {
+        if(checked) this.props.changeCurrentCanvasData({
             ...this.props.currentCanvasData,
             contextAction: 'erase',
         });

@@ -5,6 +5,8 @@ const {
     SET_IMAGES,
     SET_FILTERED_IMAGES,
     SET_FILTER,
+    SET_CURRENT_PAGE,
+    SET_CURRENT_USER,
 } = gallery;
 
 const galleryState = {
@@ -16,6 +18,8 @@ const galleryState = {
     images: [],
     filteredImages: [],
     filter: ['everything'],
+    currentPage: 1,
+    currentUser: '',
 };
 
 const galleryReducer = (state = galleryState, action) => {
@@ -40,9 +44,20 @@ const galleryReducer = (state = galleryState, action) => {
                 ...state,
                 filter: action.payload
             };
+        case SET_CURRENT_PAGE:
+            return {
+                ...state,
+                currentPage: action.payload
+            };
+        case SET_CURRENT_USER:
+            return {
+                ...state,
+                currentUser: action.payload
+            };
     
         default: return { ...state };
     }
+
 };
 
 export default galleryReducer;

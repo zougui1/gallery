@@ -62,11 +62,25 @@ const Menu = props => (
     </Paper>
 );
 
-const InputChips = ({ suggestions, value, handleChange, handleFocus, handleBlur }) => {
+class InputChips extends React.Component {
+    constructor(props) {
+        super(props);
+        const { Control } = this;
+        this.components = {
+            Control,
+            Menu,
+            MultiValue,
+            NoOptionsMessage,
+            Option,
+            Placeholder,
+            SingleValue,
+            ValueContainer,
+        };
+    }
 
-    const Control = props => (
+    Control = props => (
         <TextField
-            onKeyUp={handleKeyUp}
+            onKeyUp={this.handleKeyUp}
             fullWidth
             InputProps={{
             inputComponent,
@@ -80,46 +94,35 @@ const InputChips = ({ suggestions, value, handleChange, handleFocus, handleBlur 
         />
     );
 
-    const components = {
-        Control,
-        Menu,
-        MultiValue,
-        NoOptionsMessage,
-        Option,
-        Placeholder,
-        SingleValue,
-        ValueContainer,
-    };
-
-    const handleKeyUp = e => {
+    handleKeyUp = e => {
         const self = e.target;
         const inputValue = self.value.trim();
-        if (e.key === 'Enter') {
-            handleChange([
-                ...value,
+        if (e.key === 'Enter' || e.key === ',' || e.key === ' ') {
+            this.props.handleChange([
+                ...this.props.value,
                 { value: inputValue, label: inputValue }
             ]);
+            e.target.blur();
+            e.target.focus();
         }
     }
 
-    return (
-        <Select
-            textFieldProps={{
-                label: 'Tags',
-                InputLabelProps: {
-                    shrink: true,
-                },
-            }}
-            options={suggestions}
-            components={components}
-            value={value}
-            onChange={handleChange}
-            onFocus={handleFocus}
-            onBlur={handleBlur}
-            placeholder="Select tags"
-            isMulti
-        />
-    );
+    render() {
+        const { suggestions, value, handleBlur, handleFocus, handleChange } = this.props;
+        const { components } = this;
+        return (
+            <Select
+                options={suggestions}
+                components={components}
+                value={value}
+                onChange={handleChange}
+                onFocus={handleFocus}
+                onBlur={handleBlur}
+                placeholder="Select tags"
+                isMulti
+            />
+        );
+    }
 }
 
 export default InputChips;

@@ -48,7 +48,7 @@ class RightPanel extends Component {
             <input onChange={this.handleChange} checked={this.props.showOverlay.all} type="checkbox" name="showOverlay" id="showOverlay" />
             <br/>
             <TagsInput tags={this.props.filter} handleChange={handleTagsInputChange} />
-          </div>
+            </div>
         </div>
       </div>
     )

@@ -1,5 +1,4 @@
 const io = require('./config/')('socket');
-const aws = require('./services/aws');
 const mongoose = require('./mongoose/index');
 
 io.on('connection', socket => {
@@ -10,7 +9,9 @@ io.on('connection', socket => {
     })
 
     socket.on('signup', user => {
-        mongoose.signup(user).then(console.log).catch(() => socket.emit('usernameAlreadyUsed', { usernameAlreadyUsed: 'This username is already used.' }));
+        mongoose.signup(user)
+        .then(() => socket.emit('userCreated'))
+        .catch(() => socket.emit('usernameAlreadyUsed', { usernameAlreadyUsed: 'This username is already used.' }));
     })
 
     socket.on('login', user => {
@@ -27,8 +28,8 @@ io.on('connection', socket => {
         }).catch(() => socket.emit('userNotFound', 'User not found.'));
     })
 
-    socket.on('retrieveImagesByUser', username => { mongoose.getAllImagesByUser(username)
-        .then(images => socket.emit('retrieveImagesFromDB', images))
+    socket.on('retrieveImagesByUser', req => { mongoose.getImagesByUser(req.username, req.page)
+        .then(images => {socket.emit('retrieveImagesFromDB', images);console.log(images)})
         .catch(err => console.error(err))
     })
 
@@ -38,12 +39,17 @@ io.on('connection', socket => {
     })
 
     socket.on('createTag', tags => { mongoose.setTags(tags, mongoose.getAllTags())
-        .then(tags => console.log('tag  created'))
+        .then(tags => console.log('tag created'))
         .catch(console.log)
     })
 
     socket.on('getAllTags', () => {mongoose.getAllTags()
         .then(tags => socket.emit('retrieveAllTagsFromDB', tags))
+        .catch(console.log)
+    })
+
+    socket.on('getImagesByUserAndTags', req => {mongoose.getImagesByUserAndTags(req.username, req.tags)
+        .then(console.log)
         .catch(console.log)
     })
 });

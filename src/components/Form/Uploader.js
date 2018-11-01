@@ -2,7 +2,6 @@ import React from 'react'
 import uploadcare from 'uploadcare-widget';
 import Button from '@material-ui/core/Button';
 import Checkbox from '@material-ui/core/Checkbox';
-import TextField from '@material-ui/core/TextField';
 import TagsInput from '../TagsInput';
 
 import { connect } from 'react-redux';
@@ -26,8 +25,6 @@ const mapDispatchToProps = dispatch => ({
   changeImageData: imageData => dispatch(changeImageData(imageData)),
  });
 
-
-
 class Uploader extends React.Component {
 
   state = {
@@ -36,21 +33,10 @@ class Uploader extends React.Component {
     artistLink: '',
     characterName: '',
     tags: [],
-    tagsSelect: '',
     nsfwCheckbox: React.createRef(),
-    tagsList: [],
-    tagsFiltered: [],
-    isAutoCompletion: false,
-    chipsArea: React.createRef(),
-    chipIndex: 0,
-    chipsRef: [],
     overlay: false,
     nsfw: false,
     tagsInputActive: false,
-  }
-
-  componentDidMount = () => {
-    emit.createTags(['Fullbody', 'Wings', 'Legs', 'Head', 'Neck', 'Arms', 'Back', 'Tail']);
   }
 
   handleFiles = e => {
@@ -60,25 +46,40 @@ class Uploader extends React.Component {
 
   submitHandler = e => {
     e.preventDefault();
-    const { file, overlay, artistName, artistLink, characterName, nsfw, tags, tagsInputActive } = this.state;
-    if(!this.state.isAutoCompletion && !tagsInputActive && file) {
+    const {
+      file,
+      overlay,
+      artistName,
+      artistLink,
+      characterName,
+      nsfw,
+      tags,
+      tagsInputActive
+    } = this.state;
+    if(!tagsInputActive && file) {
       const tagsName = tags.map(tag => tag.value);
       const { tagsList } = this.props;
       const formData = {
-        artistName: artistName,
-        artistLink: artistLink,
-        characterName: characterName,
+        artistName,
+        artistLink,
+        characterName,
         tags: tagsName,
         isNsfw: nsfw,
       }
       
       const newTags = tagsName.filter(tag => !inArray(tag, tagsList, 'value'));
+      if(nsfw) {
+        const nsfwTag = formData.tags.filter(tag => tag.toLowerCase() === 'nsfw');
+        if(nsfwTag.length === 0) formData.tags.push('NSFW');
+      } else formData.tags.push('SFW');
 
+      if(!/https?:\/\//.test(formData.artistLink)) formData.artistLink = 'https://' + formData.artistLink;
+      
+      if(newTags.length > 0) emit.createTags(newTags);
       if(!overlay) {
         const fileUpload = uploadcare.fileFrom('object', file);
         
         fileUpload.done(file => {emit.uploadImage({...formData, image: file.uuid + '/' + file.sourceInfo.file.name});console.log(file)});
-        if(newTags.length > 0) emit.createTags(newTags);
       } else {
         const reader = new FileReader();
         reader.readAsDataURL(file);
@@ -129,7 +130,7 @@ class Uploader extends React.Component {
     } = this;
 
     return (
-      <div>
+      <div style={{display: 'flex', justifyContent: 'center', textAlign: 'center'}}>
         <form>
           <label htmlFor="overlay">Draw an overlay?</label>
           <Checkbox
@@ -180,7 +181,7 @@ class Uploader extends React.Component {
 
           <br />
           <br />
-          <Button onClick={submitHandler} variant="contained" type="submit">Submit</Button>
+          <Button color="primary" onClick={submitHandler} variant="contained" type="submit">Submit</Button>
         </form>
       </div>
     );

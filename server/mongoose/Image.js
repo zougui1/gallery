@@ -1,8 +1,14 @@
 const Image = require('../models/Image');
 
+const imagePerPage = 30;
 
-exports.getAllImagesByUser = username => {
-    return Image.find({ username: username });
+exports.getImagesByUserAndTags = (username, tags) => {
+    return Image.find({ username: username, tags: {$in: tags} });
+}
+
+exports.getImagesByUser = (username, page) => {
+    setTimeout(() => console.log(username, page, (page - 1) * imagePerPage), 1000)
+    return Image.find({ username: username }).skip((page - 1) * imagePerPage).limit(imagePerPage).sort({_id:-1});
 }
 
 exports.getImageById = id => {
