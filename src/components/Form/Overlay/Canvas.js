@@ -10,11 +10,13 @@ import { uploader } from '../../../store/actions';
 
 const {
     changeCurrentCanvasData,
+    setCanvasField,
 } = uploader;
 
 const mapStateToProps = mapDynamicState('currentCanvasData imageData inputs', 'uploader');
 const mapDispatchToProps = dispatch => ({ 
   changeCurrentCanvasData: contextAction => dispatch(changeCurrentCanvasData(contextAction)),
+  setCanvasField: field => dispatch(setCanvasField(field)),
  });
 class Canvas extends React.Component {
 
