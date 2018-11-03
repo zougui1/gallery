@@ -1,34 +1,20 @@
 import React from 'react';
-import uploadcare from 'uploadcare-widget'
 import { connect } from 'react-redux';
-import Button from '@material-ui/core/Button';
 
 import '../form.scss';
 
 import { emit } from '../../../socket/upload';
-import { b64ToBlob } from '../../../utils';
 import { mapDynamicState } from '../../../utils';
 import { uploader } from '../../../store/actions';
 
-import CanvasField from './CanvasField';
 
 const {
     changeCurrentCanvasData,
-    addImageToUpload,
-    addCanvasField,
-    addCanvasLabel,
-    editCanvasField,
-    setCanvasField,
 } = uploader;
 
-const mapStateToProps = mapDynamicState('currentCanvasData imageData imagesToUpload inputs labels', 'uploader');
+const mapStateToProps = mapDynamicState('currentCanvasData imageData inputs', 'uploader');
 const mapDispatchToProps = dispatch => ({ 
-  addCanvasField: field => dispatch(addCanvasField(field)),
-  addCanvasLabel: label => dispatch(addCanvasLabel(label)),
-  addImageToUpload: image => dispatch(addImageToUpload(image)),
   changeCurrentCanvasData: contextAction => dispatch(changeCurrentCanvasData(contextAction)),
-  editCanvasField: (field, id) => dispatch(editCanvasField(field, id)),
-  setCanvasField: field => dispatch(setCanvasField(field)),
  });
 class Canvas extends React.Component {
 
@@ -44,7 +30,6 @@ class Canvas extends React.Component {
         const htmlElement = document.getElementsByTagName('html')[0];
         htmlElement.addEventListener('dragover', e => this.dragOverHandler(e, 'html'));
         htmlElement.addEventListener('drop', this.dropHandler);
-        htmlElement.style.overflow = 'hidden';
     }
 
     drawLine = (x0, y0, x1, y1, color) => {
@@ -52,13 +37,17 @@ class Canvas extends React.Component {
         const { context, contextAction } = this.props.currentCanvasData;
         const current = this.props.currentCanvasData;
         const { top, left } = canvasPositions;
-        x0 -= left;
-        y0 -= top;
+        const windowOffsetTop = window.pageYOffset;
+        const windowOffsetleft = window.pageXOffset;
+        x0 -= left - windowOffsetleft;
+        y0 -= top - windowOffsetTop;
 
         if(contextAction === 'draw') {
+            x1 -= left - windowOffsetleft;
+            y1 -= top - windowOffsetTop;
             context.beginPath();
             context.moveTo(x0, y0);
-            context.lineTo(x1 - left, y1 - top);
+            context.lineTo(x1, y1);
             context.strokeStyle = color;
             context.lineWidth = 3;
             context.stroke();
@@ -113,7 +102,7 @@ class Canvas extends React.Component {
 
         if (!drawing) {return};
         changeCurrentCanvasData(current.drawing = false)
-        this.drawArrow(current.x, current.y, e.clientX, e.clientY, current.color, true);
+        this.drawLine(current.x, current.y, e.clientX, e.clientY, current.color, true);
     }
 
     mouseMoveHandler = e => {
@@ -137,34 +126,6 @@ class Canvas extends React.Component {
                 callback.apply(null, arguments);
             }
         };
-    }
-
-    onCreateInput = e => {
-        let { inputKey } = this.state;
-        let { inputs, canvasDatas } = this.props;
-        let current = this.props.currentCanvasData;
-        const { top, left } = canvasDatas.canvasPositions;
-        
-        const client = {x: e.clientX - left, y: e.clientY - top}
-        this.props.labels[inputKey] = React.createRef();
-        this.props.addCanvasLabel(this.props.labels);
-        const element2 = (
-            <CanvasField
-                key={inputKey}
-                _key={inputKey}
-                client={client}
-                current={current} />
-        );
-
-        const input = {
-            element: element2,
-            inputKey,
-            label: this.props.labels[inputKey]
-        };
-        inputKey++;
-        inputs = this.props.inputs.concat(input);
-        this.props.addCanvasField(inputs);
-        this.setState({ inputKey, lastInput: input })
     }
 
     dragOverHandler = (e, type) => {
@@ -197,58 +158,6 @@ class Canvas extends React.Component {
                 if(input.inputKey !== key) {return input};
             })
             this.props.setCanvasField(inputsUpdate);
-        }
-    }
-
-    /**
-     * @var {Array} inputs
-     * @var {Object} input
-     * @var {Object} input.element-
-     * @var {Number} input.inputKey
-     * @var {Object} input.label
-     * @var {HTMLLabelElement} input.label.current
-     */
-    uploadHandler = () => {
-        const { canvas, imgRef } = this.props.canvasDatas;
-        const textCanvas = this.createTextCanvas();
-        this.uploader(b64ToBlob(imgRef.current.src), 'image');
-        canvas.toBlob(blob => this.uploader(blob, 'draw'));
-
-        if(textCanvas) {
-            textCanvas.toBlob(blob => this.uploader(blob, 'text'));
-        }
-        else {
-            this.props.changeCurrentCanvasData({ ...this.props.currentCanvasData, hasTextCanvas: false });
-        }
-    }
-
-    uploader = (image, type) => {
-        const fileUp = uploadcare.fileFrom('object', image);
-        
-        fileUp.done(file => {
-            let { imagesToUpload, addImageToUpload } = this.props;
-            console.log(file)
-            
-            imagesToUpload[type] = file.uuid + '/original';
-            addImageToUpload({ ...imagesToUpload, imagesToUpload, });
-            this.uploadToMongo();
-        });
-    }
-
-    uploadToMongo = () => {
-        const { imagesToUpload, currentCanvasData } = this.props;
-        const { hasTextCanvas } = currentCanvasData
-        let tempArr = [];
-        for (const key in imagesToUpload) {
-            if (imagesToUpload[key]) {
-                tempArr.push(1);
-            }
-        }
-        if((tempArr.length === 3 && hasTextCanvas) || (tempArr.length === 2 && !hasTextCanvas)) {
-            const { imageData } = this.props;
-            const imageDataWithCanvas = {...imageData, ...imagesToUpload};
-            console.log('upload')
-            emit.uploadImage(imageDataWithCanvas);
         }
     }
 
@@ -286,10 +195,8 @@ class Canvas extends React.Component {
             mouseUpHandler,
             mouseMoveHandler,
             throttle,
-            onCreateInput,
             dragOverHandler,
             dragLeaveHandler,
-            uploadHandler
         } = this;
         const { width, height } = imageData;
         console.log(width, height)
@@ -303,16 +210,14 @@ class Canvas extends React.Component {
                         style={{userSelect: 'none'}}
                         className="canvas droppable"
                         id="canvas"
-                        width={width}
-                        height={height}
+                        width={width && width - 300}
+                        height={height && height}
                         onMouseDown={mouseDownHandler}
                         onMouseUp={mouseUpHandler}
                         onMouseMove={throttle(mouseMoveHandler, 10)}
-                        onDoubleClick={onCreateInput}
                     ></canvas>
                     {inputsElement}
                 </div>
-                <Button variant="contained" color="primary" style={{userSelect: 'none', position: 'absolute', bottom: '-89.5vh', fontWeight: 'bold', marginLeft: '10px'}} onClick={uploadHandler}>Upload</Button>
             </div>
         );
     }

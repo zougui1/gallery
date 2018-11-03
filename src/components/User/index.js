@@ -34,8 +34,10 @@ export class User extends Component {
       page: 1,
     }
     const page = this.props.match.params.page;
-    this.props.setCurrentPage(page)
-    this.setState({ page })
+    if(page) {
+      this.props.setCurrentPage(page)
+      this.setState({ page })
+    }
   }
 
   componentDidMount = () => {

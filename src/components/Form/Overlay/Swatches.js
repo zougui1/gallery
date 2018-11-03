@@ -3,20 +3,30 @@ import { connect } from 'react-redux';
 import Slider from '@material-ui/lab/Slider';
 import Checkbox from '@material-ui/core/Checkbox';
 import Button from '@material-ui/core/Button';
+import { FaEraser } from 'react-icons/fa';
 
 import swatches from '../../../data/swatches';
 import { uploader } from '../../../store/actions';
 import { mapDynamicState } from '../../../utils';
+import CanvasField from './CanvasField';
 
 import '../form.scss';
 
 const {
     changeCurrentCanvasData,
+    addCanvasField,
+    addCanvasLabel,
+    editCanvasField,
+    setCanvasField,
 } = uploader;
 
-const mapStateToProps = mapDynamicState('currentCanvasData imageData', 'uploader');
+const mapStateToProps = mapDynamicState('currentCanvasData imageData inputs labels', 'uploader');
 const mapDispatchToProps = dispatch => ({ 
   changeCurrentCanvasData: currentCanvasData => dispatch(changeCurrentCanvasData(currentCanvasData)),
+  addCanvasField: field => dispatch(addCanvasField(field)),
+  addCanvasLabel: label => dispatch(addCanvasLabel(label)),
+  editCanvasField: (field, id) => dispatch(editCanvasField(field, id)),
+  setCanvasField: field => dispatch(setCanvasField(field)),
  });
 class Swatches extends React.Component {
     state = {
@@ -29,13 +39,20 @@ class Swatches extends React.Component {
         mainLayerCheckbox: React.createRef(),
         inputsLayer: true,
         inputsLayerCheckbox: React.createRef(),
+        inputKey: 0,
     }
 
     updateCurrentCanvasData = () => changeCurrentCanvasData(this.props.currentCanvasData);
 
     onColorUpdate = (e, color) => {
         const { currentCanvasData } = this.props;
-        if(e) {currentCanvasData.color = color; currentCanvasData.color = color;}
+        if(e) {
+            if(color !== 'erase') {
+                currentCanvasData.color = color;
+                this.props.eraseChangeHandler(false);
+            }
+            else this.props.eraseChangeHandler(true);
+        }
 
         if (currentCanvasData.alpha) {
             let newColor = currentCanvasData.color.replace(/[0-1]+([.][0-9]*)?\)$/, currentCanvasData.alpha + ')');
@@ -87,13 +104,38 @@ class Swatches extends React.Component {
         const checkboxElement = this.state[name + 'Checkbox'].current;
         let checked = checkboxElement.props.checked;
         checked = !checked;
-        console.log(checked)
 
         this.setState({
             [name]: checked
         });
-        if(name === 'erase') this.props.eraseChangeHandler(checked);
-        else this[name]();
+        this[name]();
+    }
+
+    createInput = e => {
+        let { inputKey } = this.state;
+        let { inputs, canvasDatas } = this.props;
+        let current = this.props.currentCanvasData;
+        
+        const client = {x: 10, y: 10}
+        this.props.labels[inputKey] = React.createRef();
+        this.props.addCanvasLabel(this.props.labels);
+        const element2 = (
+            <CanvasField
+                key={inputKey}
+                _key={inputKey}
+                client={client}
+                current={current} />
+        );
+
+        const input = {
+            element: element2,
+            inputKey,
+            label: this.props.labels[inputKey]
+        };
+        inputKey++;
+        inputs = this.props.inputs.concat(input);
+        this.props.addCanvasField(inputs);
+        this.setState({ inputKey, lastInput: input })
     }
 
     render() {
@@ -102,25 +144,32 @@ class Swatches extends React.Component {
             resetCanvas,
             handleCheckboxChange,
             onSlideChange,
+            createInput,
         } = this;
         const {
-            erase,
-            eraseCheckbox,
             mainLayer,
             mainLayerCheckbox,
             inputsLayer,
             inputsLayerCheckbox,
+            textSizeSliderValue,
+            alphaSliderValue,
+            eraseSizeSliderValue,
         } = this.state;
+        const {
+            handleModalOpen
+        } = this.props;
 
         return (
-            <div style={{color: 'white'}} className="colors color-picker-panel">
+            <div style={{color: 'white', top: '80px'}} className="colors color-picker-panel">
                 <div className="panel-row">
                     <div className="swatches default-swatches">
                         {swatches.map(swatch => (
                             <div
                                 key={swatch.id}
                                 className={`c${swatch.id} swatch color`}
-                                onClick={e => onColorUpdate(e, swatch.color)}></div>
+                                onClick={e => onColorUpdate(e, swatch.color)}>
+                                {swatch.id === 12 && <FaEraser style={{color: '#000', fontSize: '2.3rem', padding: 0, margin: 0}} />}
+                            </div>
                         ))}
                     </div>
                     <div>
@@ -128,7 +177,7 @@ class Swatches extends React.Component {
                         <Slider
                             style={{padding: '10px 0'}}
                             id="alpha"
-                            value={this.state.alphaSliderValue}
+                            value={alphaSliderValue}
                             step={0.05}
                             min={0.05}
                             max={1}
@@ -139,36 +188,28 @@ class Swatches extends React.Component {
                         <Slider
                             style={{padding: '10px 0'}}
                             id="textSize"
-                            value={this.state.textSizeSliderValue}
+                            value={textSizeSliderValue}
                             step={1}
                             min={16}
                             max={100}
                             onChange={onSlideChange('text', true)}
                         />
-                            
-                        <label style={{color: 'white'}} htmlFor="erase">Erase</label>
-                        <Checkbox
-                            onClick={handleCheckboxChange('erase')}
-                            onChange={handleCheckboxChange('erase')}
-                            checked={erase}
-                            name="erase"
-                            id="erase"
-                            ref={eraseCheckbox}
-                        />
-                        <br/>
                         
-                        <label style={{color: 'white'}} htmlFor="eraseSize">Erase size</label>
-                        <Slider
-                            style={{padding: '10px 0'}}
-                            id="eraseSize"
-                            value={this.state.eraseSizeSliderValue}
-                            step={1}
-                            min={10}
-                            max={100}
-                            onChange={onSlideChange('erase')}
-                        />
-                        <Button style={{color: '#fff'}} onClick={resetCanvas} id="reset">Reset</Button>
-                        <br/>
+                        {
+                            this.props.currentCanvasData.contextAction === 'erase' &&
+                            <div>
+                                <label style={{color: 'white'}} htmlFor="eraseSize">Erase size</label>
+                                <Slider
+                                    style={{padding: '10px 0'}}
+                                    id="eraseSize"
+                                    value={eraseSizeSliderValue}
+                                    step={1}
+                                    min={10}
+                                    max={100}
+                                    onChange={onSlideChange('erase')}
+                                />
+                            </div>
+                        }
                         
                         <label htmlFor="inputsLayer">Display text</label>
                         <Checkbox
@@ -189,10 +230,13 @@ class Swatches extends React.Component {
                             id="mainLayer"
                             ref={mainLayerCheckbox}
                         />
+
+                        <br/>
+                        <Button style={{color: '#fff'}} onClick={createInput} >Create a textbox</Button>
+                        <br/>
+                        <Button style={{color: '#fff'}} onClick={resetCanvas} id="reset">Reset</Button>
                         
-                        <p>Tips:<br />
-                        you can double click on the image to create an input<br />
-                        you can drag the input out of the image to delete the input</p>
+                        <p style={{ cursor: 'pointer' }} onClick={handleModalOpen}>Need help to draw an overlay?</p>
                     </div>
                 </div>
             </div>

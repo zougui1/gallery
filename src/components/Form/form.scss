@@ -1,7 +1,6 @@
 @import '../../sass/color';
 @import '../../sass/vars';
 
-
 .overlay-container {
     position: relative;
 }
@@ -18,10 +17,7 @@
     border: none;
     position: absolute;
     left: 0;
-    max-width: none;
-    max-height: 84vh;
-    max-width: 70vw;
-    //border: 2px solid #0000ff;
+    padding-right: 300px;
 }
 
 .canvas {
@@ -30,7 +26,6 @@
     left: 0 !important;
     top: 0 !important;
     border: 1px solid #ccc;
-    //border: 2px solid #f00;
 }
 
 .color-picker-panel {
@@ -40,7 +35,7 @@
     border-radius: 8px;
     border: 2px solid $color-ui-border;
     box-shadow: 0 4px 12px rgba(0, 0, 0, .4);
-    position: absolute;
+    position: fixed;
     top: 1%;
     right: 1%;
     margin-bottom: 10px;
@@ -119,19 +114,19 @@
 }
 
 .c9 {
-    background-color: rgb(238, 84, 100);
-}
-
-.c10 {
     background-color: rgb(210, 122, 238);
 }
 
-.c11 {
+.c10 {
     background-color: rgb(91, 168, 196);
 }
 
-.c12 {
+.c11 {
     background-color: rgb(230, 74, 169);
+}
+
+.c12 {
+    background-color: #fff;
 }
 
 .canvas-label {

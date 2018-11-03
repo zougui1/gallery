@@ -27,7 +27,7 @@ exports.setImage = image => {
             artistName: image.artistName,
             artistLink: image.artistLink,
             characterName: image.characterName,
-            username: 'zougui'
+            username: image.username
         })
     return imageSave.save();
 }

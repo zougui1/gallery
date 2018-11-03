@@ -18,7 +18,10 @@ const {
 } = uploader;
 
 
-const mapStateToProps = mapDynamicState('tagsList', 'init');
+const mapStateToProps = state => ({
+  tagsList: state.initReducer.tagsList,
+  loggedUsername: state.authReducer.loggedUsername,
+})
 
 const mapDispatchToProps = dispatch => ({ 
   changeFormView: view => dispatch(changeFormView(view)),
@@ -63,6 +66,7 @@ class Uploader extends React.Component {
         artistName,
         artistLink,
         characterName,
+        username: this.props.loggedUsername,
         tags: tagsName,
         isNsfw: nsfw,
       }
@@ -80,6 +84,7 @@ class Uploader extends React.Component {
         const fileUpload = uploadcare.fileFrom('object', file);
         
         fileUpload.done(file => {emit.uploadImage({...formData, image: file.uuid + '/' + file.sourceInfo.file.name});console.log(file)});
+        console.log(formData)
       } else {
         const reader = new FileReader();
         reader.readAsDataURL(file);
@@ -175,7 +180,7 @@ class Uploader extends React.Component {
           <input style={{display: 'none'}} id="image" type="file" accept="image/*" onChange={files => this.handleFiles(files)} />
           <label htmlFor="image">
             <Button variant="contained" component="span">
-              Upload
+              Browser
             </Button>
           </label>
 
