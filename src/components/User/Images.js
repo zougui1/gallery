@@ -6,6 +6,7 @@ import { connect } from 'react-redux';
 import { mapDynamicState, getPosition } from '../../utils';
 import { gallery } from '../../store/actions';
 import Pagination from '../Pagination';
+import Loading from '../Loading';
 
 const {
   getFilteredImages,
@@ -16,6 +17,7 @@ const {
 const mapStateToProps = state => ({
   showOverlay: state.galleryReducer.showOverlay,
   filteredImages: state.galleryReducer.filteredImages,
+  images: state.galleryReducer.images,
   state: state,
 })
 
@@ -48,7 +50,10 @@ class Images extends Component {
   }
 
   render() {
+    const { images } = this.props;
     const filteredImages = getFilteredImages(this.props.state);
+    console.log(images)
+    console.log(images.length)
     
     return (
       <div className="images">
@@ -61,6 +66,9 @@ class Images extends Component {
                   </Link>
               </div>
           ))}
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'center' }}>
+          <Loading loading={images.length === 0} size={60} />
         </div>
         <div className="pagination">
           <Pagination currentPage={this.props.page} basePath={`/user/${this.props.username}`} />

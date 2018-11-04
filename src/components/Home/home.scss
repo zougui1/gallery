@@ -1,0 +1,16 @@
+.gradient {
+    background: #fff; // set the background color is necessary
+    position: relative;
+
+    &::before {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0; // all the position to 0 is necessary
+        background: linear-gradient(to right, #f00, #00f);
+        content: '';
+        display: block;
+        mix-blend-mode: screen;
+    }
+}

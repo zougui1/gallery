@@ -11,6 +11,7 @@ import { mapDynamicState, inArray } from '../../utils';
 import { emit, on } from '../../socket/upload';
 import { fields } from '../../data/uploaderFields';
 import Field from '../Field';
+import Loading from '../Loading';
 
 const {
   changeFormView,
@@ -40,6 +41,8 @@ class Uploader extends React.Component {
     overlay: false,
     nsfw: false,
     tagsInputActive: false,
+    uploadCompleted: false,
+    loading: false,
   }
 
   handleFiles = e => {
@@ -63,9 +66,9 @@ class Uploader extends React.Component {
       const tagsName = tags.map(tag => tag.value);
       const { tagsList } = this.props;
       const formData = {
-        artistName,
+        artistName: artistName || 'unknown',
         artistLink,
-        characterName,
+        characterName: characterName || 'unknown',
         username: this.props.loggedUsername,
         tags: tagsName,
         isNsfw: nsfw,
@@ -82,8 +85,13 @@ class Uploader extends React.Component {
       if(newTags.length > 0) emit.createTags(newTags);
       if(!overlay) {
         const fileUpload = uploadcare.fileFrom('object', file);
+        this.setState({ loading: true });
         
-        fileUpload.done(file => {emit.uploadImage({...formData, image: file.uuid + '/' + file.sourceInfo.file.name});console.log(file)});
+        fileUpload.done(file => {
+          emit.uploadImage({...formData, image: file.uuid + '/' + file.sourceInfo.file.name});
+          this.setState({ uploadCompleted: true });
+          console.log(file)
+        });
         console.log(formData)
       } else {
         const reader = new FileReader();
@@ -124,7 +132,7 @@ class Uploader extends React.Component {
 
 
   render() {
-    const { overlayCheckbox, nsfwCheckbox, tags, overlay, nsfw } = this.state;
+    const { overlayCheckbox, nsfwCheckbox, tags, overlay, nsfw, uploadCompleted, loading } = this.state;
     const {
       submitHandler,
       handleCheckboxChange,
@@ -180,13 +188,14 @@ class Uploader extends React.Component {
           <input style={{display: 'none'}} id="image" type="file" accept="image/*" onChange={files => this.handleFiles(files)} />
           <label htmlFor="image">
             <Button variant="contained" component="span">
-              Browser
+              Browse
             </Button>
           </label>
 
           <br />
           <br />
           <Button color="primary" onClick={submitHandler} variant="contained" type="submit">Submit</Button>
+          <Loading redirect="/" loading={loading} completed={uploadCompleted} message="The image has been uploaded." />
         </form>
       </div>
     );

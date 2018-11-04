@@ -35,10 +35,8 @@ export const getImagesByCurrentPage = store => next => action => {
                 };
                 emit.retrieveImagesByUser(req);
                 on.retrieveImagesFromDB(images => {
-                    console.log(images)
                     store.dispatch(setImages(images));
                 })
-                console.log(galleryReducer.currentPage)
             }, 1500);
             return next(action);
     

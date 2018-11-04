@@ -8,11 +8,13 @@ import './index.css';
 import store from "./store";
 import Navbar from './components/Navbar';
 import Router from './Router';
+import Init from './Init';
 
 const Root = () => (
     <Provider store={store}>
         <BrowserRouter>
             <div>
+                <Init />
                 <Navbar />
                 <Router />
             </div>

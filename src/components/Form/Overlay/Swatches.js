@@ -4,11 +4,14 @@ import Slider from '@material-ui/lab/Slider';
 import Checkbox from '@material-ui/core/Checkbox';
 import Button from '@material-ui/core/Button';
 import { FaEraser } from 'react-icons/fa';
+import uploadcare from 'uploadcare-widget'
 
 import swatches from '../../../data/swatches';
 import { uploader } from '../../../store/actions';
-import { mapDynamicState } from '../../../utils';
+import { mapDynamicState, b64ToBlob } from '../../../utils';
 import CanvasField from './CanvasField';
+import { emit } from '../../../socket/upload';
+import Loading from '../../Loading';
 
 import '../form.scss';
 
@@ -40,9 +43,24 @@ class Swatches extends React.Component {
         inputsLayer: true,
         inputsLayerCheckbox: React.createRef(),
         inputKey: 0,
+        loading: false,
+        uploadCompleted: false,
+        numberOfUploadCompleted: 0,
     }
 
-    updateCurrentCanvasData = () => changeCurrentCanvasData(this.props.currentCanvasData);
+    componentDidUpdate = (prevProps, prevState) => {
+      const { numberOfUploadCompleted } = this.state;
+      if(prevState.numberOfUploadCompleted !== numberOfUploadCompleted) {
+        const { hasTextCanvas } = this.props.currentCanvasData;
+
+        if((numberOfUploadCompleted === 3 && hasTextCanvas) || (numberOfUploadCompleted === 2 && !hasTextCanvas))
+            this.setState({ uploadCompleted: true });
+        else this.setState({ uploadCompleted: false });
+      }
+    }
+    
+
+    updateCurrentCanvasData = () => {changeCurrentCanvasData(this.props.currentCanvasData);console.log(this.props.currentCanvasData.color)}
 
     onColorUpdate = (e, color) => {
         const { currentCanvasData } = this.props;
@@ -54,10 +72,9 @@ class Swatches extends React.Component {
             else this.props.eraseChangeHandler(true);
         }
 
-        if (currentCanvasData.alpha) {
-            let newColor = currentCanvasData.color.replace(/[0-1]+([.][0-9]*)?\)$/, currentCanvasData.alpha + ')');
-            currentCanvasData.color = newColor;
-        }
+        
+        let newColor = currentCanvasData.color.replace(/[0-1]+([.][0-9]*)?\)$/, currentCanvasData.alpha + ')');
+        currentCanvasData.color = newColor;
         this.updateCurrentCanvasData();
     }
 
@@ -138,6 +155,86 @@ class Swatches extends React.Component {
         this.setState({ inputKey, lastInput: input })
     }
 
+    createTextCanvas = () => {
+        const { width, height } = this.props.imageData;
+        const { inputs } = this.props;
+        
+        let canvas = document.createElement('canvas');
+        let context = canvas.getContext('2d');
+        canvas.width = width;
+        canvas.height = height;
+
+        if(inputs.length > 0) {
+            inputs.forEach(label => {
+                label = label.label.current;
+                const style = label.style;
+                const input = label.childNodes[1];
+                let fontSize = input.style.fontSize.replace('px', '');
+                fontSize = Number(fontSize) + 3 + 'px';
+                const left = Number(style.left.replace('px', ''));
+                const top = Number(style.top.replace('px', ''));
+
+                context.fillStyle = style.color;
+                context.font = fontSize + ' sans-serif';
+                context.fillText(input.value, left, top);
+            });
+            return canvas;
+        }
+    }
+
+    uploadHandler = () => {
+        const { canvas, imgRef } = this.props.canvasDatas;
+        const textCanvas = this.createTextCanvas();
+        this.uploader(b64ToBlob(imgRef.current.src), 'image');
+        canvas.toBlob(blob => this.uploader(blob, 'draw'));
+        this.setState({ loading: true });
+
+        if (textCanvas) {
+            textCanvas.toBlob(blob => this.uploader(blob, 'text'));
+        } else {
+            this.props.changeCurrentCanvasData({ ...this.props.currentCanvasData,
+                hasTextCanvas: false
+            });
+        }
+    }
+
+    uploader = (image, type) => {
+        const fileUp = uploadcare.fileFrom('object', image);
+
+        fileUp.done(file => {
+            let { imagesToUpload, addImageToUpload } = this.props;
+            console.log(file)
+            this.setState({ numberOfUploadCompleted: this.state.numberOfUploadCompleted + 1 });
+
+            imagesToUpload[type] = file.uuid + '/original';
+            addImageToUpload({ ...imagesToUpload,
+                imagesToUpload,
+            });
+            this.uploadToMongo();
+        });
+    }
+
+    uploadToMongo = () => {
+        const { imagesToUpload, currentCanvasData } = this.props;
+        const { hasTextCanvas } = currentCanvasData
+        let tempArr = [];
+        for (const key in imagesToUpload) {
+            if (imagesToUpload[key]) {
+                tempArr.push(1);
+            }
+        }
+        if((tempArr.length === 3 && hasTextCanvas) || (tempArr.length === 2 && !hasTextCanvas)) {
+            const {
+                imageData
+            } = this.props;
+            const imageDataWithCanvas = { ...imageData,
+                ...imagesToUpload
+            };
+            console.log('upload')
+            emit.uploadImage(imageDataWithCanvas);
+        }
+    }
+
     render() {
         const {
             onColorUpdate,
@@ -145,6 +242,7 @@ class Swatches extends React.Component {
             handleCheckboxChange,
             onSlideChange,
             createInput,
+            uploadHandler,
         } = this;
         const {
             mainLayer,
@@ -154,13 +252,15 @@ class Swatches extends React.Component {
             textSizeSliderValue,
             alphaSliderValue,
             eraseSizeSliderValue,
+            loading,
+            uploadCompleted,
         } = this.state;
         const {
-            handleModalOpen
+            handleModalOpen,
         } = this.props;
 
         return (
-            <div style={{color: 'white', top: '80px'}} className="colors color-picker-panel">
+            <div style={{color: 'white', top: '80px', textAlign: 'center'}} className="colors color-picker-panel">
                 <div className="panel-row">
                     <div className="swatches default-swatches">
                         {swatches.map(swatch => (
@@ -172,72 +272,73 @@ class Swatches extends React.Component {
                             </div>
                         ))}
                     </div>
-                    <div>
-                        <label style={{color: 'white'}} htmlFor="alpha">Alpha</label>
-                        <Slider
-                            style={{padding: '10px 0'}}
-                            id="alpha"
-                            value={alphaSliderValue}
-                            step={0.05}
-                            min={0.05}
-                            max={1}
-                            onChange={onSlideChange('alpha')}
-                        />
+                </div>
+                <div className="panel-row">
+                    <label style={{color: 'white'}} htmlFor="alpha">Alpha</label>
+                    <Slider
+                        style={{padding: '10px 0'}}
+                        id="alpha"
+                        value={alphaSliderValue}
+                        step={0.05}
+                        min={0.05}
+                        max={1}
+                        onChange={onSlideChange('alpha')}
+                    />
 
-                        <label style={{color: 'white'}} htmlFor="textSize">Text size</label><br/>
-                        <Slider
-                            style={{padding: '10px 0'}}
-                            id="textSize"
-                            value={textSizeSliderValue}
-                            step={1}
-                            min={16}
-                            max={100}
-                            onChange={onSlideChange('text', true)}
-                        />
-                        
-                        {
-                            this.props.currentCanvasData.contextAction === 'erase' &&
-                            <div>
-                                <label style={{color: 'white'}} htmlFor="eraseSize">Erase size</label>
-                                <Slider
-                                    style={{padding: '10px 0'}}
-                                    id="eraseSize"
-                                    value={eraseSizeSliderValue}
-                                    step={1}
-                                    min={10}
-                                    max={100}
-                                    onChange={onSlideChange('erase')}
-                                />
-                            </div>
-                        }
-                        
-                        <label htmlFor="inputsLayer">Display text</label>
-                        <Checkbox
-                            onClick={handleCheckboxChange('inputsLayer')}
-                            onChange={handleCheckboxChange('inputsLayer')}
-                            checked={inputsLayer}
-                            name="inputsLayer"
-                            id="inputsLayer"
-                            ref={inputsLayerCheckbox}
-                        />
+                    <label style={{color: 'white'}} htmlFor="textSize">Text size</label><br/>
+                    <Slider
+                        style={{padding: '10px 0'}}
+                        id="textSize"
+                        value={textSizeSliderValue}
+                        step={1}
+                        min={16}
+                        max={100}
+                        onChange={onSlideChange('text', true)}
+                    />
+                    
+                    {
+                        this.props.currentCanvasData.contextAction === 'erase' &&
+                        <div>
+                            <label style={{color: 'white'}} htmlFor="eraseSize">Erase size</label>
+                            <Slider
+                                style={{padding: '10px 0'}}
+                                id="eraseSize"
+                                value={eraseSizeSliderValue}
+                                step={1}
+                                min={10}
+                                max={100}
+                                onChange={onSlideChange('erase')}
+                            />
+                        </div>
+                    }
+                    <label htmlFor="inputsLayer">Display text</label>
+                    <Checkbox
+                        onClick={handleCheckboxChange('inputsLayer')}
+                        onChange={handleCheckboxChange('inputsLayer')}
+                        checked={inputsLayer}
+                        name="inputsLayer"
+                        id="inputsLayer"
+                        ref={inputsLayerCheckbox}
+                    />
 
-                        <label htmlFor="mainLayer">Display draw</label>
-                        <Checkbox
-                            onClick={handleCheckboxChange('mainLayer')}
-                            onChange={handleCheckboxChange('mainLayer')}
-                            checked={mainLayer}
-                            name="mainLayer"
-                            id="mainLayer"
-                            ref={mainLayerCheckbox}
-                        />
+                    <label htmlFor="mainLayer">Display draw</label>
+                    <Checkbox
+                        onClick={handleCheckboxChange('mainLayer')}
+                        onChange={handleCheckboxChange('mainLayer')}
+                        checked={mainLayer}
+                        name="mainLayer"
+                        id="mainLayer"
+                        ref={mainLayerCheckbox}
+                    />
 
-                        <br/>
-                        <Button style={{color: '#fff'}} onClick={createInput} >Create a textbox</Button>
-                        <br/>
-                        <Button style={{color: '#fff'}} onClick={resetCanvas} id="reset">Reset</Button>
-                        
-                        <p style={{ cursor: 'pointer' }} onClick={handleModalOpen}>Need help to draw an overlay?</p>
-                    </div>
+                    <br/>
+                    <Button style={{color: '#fff'}} onClick={createInput} >Create a textbox</Button>
+                    <br/>
+                    <Button style={{color: '#fff'}} onClick={resetCanvas} id="reset">Reset</Button>
+                    <br/>
+                    <Button style={{color: '#fff'}} onClick={uploadHandler}>Upload</Button>
+                    <Loading redirect="/" loading={loading} completed={uploadCompleted} message="The image with the overlay has been uploaded." />
+                    <p style={{ cursor: 'pointer' }} onClick={handleModalOpen}>Need help to draw an overlay?</p>
                 </div>
             </div>
         );

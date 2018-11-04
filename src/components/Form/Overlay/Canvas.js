@@ -11,12 +11,14 @@ import { uploader } from '../../../store/actions';
 const {
     changeCurrentCanvasData,
     setCanvasField,
+    editCanvasField,
 } = uploader;
 
 const mapStateToProps = mapDynamicState('currentCanvasData imageData inputs', 'uploader');
 const mapDispatchToProps = dispatch => ({ 
   changeCurrentCanvasData: contextAction => dispatch(changeCurrentCanvasData(contextAction)),
   setCanvasField: field => dispatch(setCanvasField(field)),
+  editCanvasField: (field, id) => dispatch(editCanvasField(field, id)),
  });
 class Canvas extends React.Component {
 
@@ -36,7 +38,7 @@ class Canvas extends React.Component {
 
     drawLine = (x0, y0, x1, y1, color) => {
         const { canvasPositions } = this.props.canvasDatas;
-        const { context, contextAction } = this.props.currentCanvasData;
+        const { context, contextAction,  } = this.props.currentCanvasData;
         const current = this.props.currentCanvasData;
         const { top, left } = canvasPositions;
         const windowOffsetTop = window.pageYOffset;
@@ -91,6 +93,10 @@ class Canvas extends React.Component {
 
     mouseDownHandler = e => {
         const current = this.props.currentCanvasData;
+        
+        // if you change the color the alpha isn't set, so we change again the color to set the alpha
+        let newColor = current.color.replace(/[0-1]+([.][0-9]*)?\)$/, current.alpha + ')');
+        current.color = newColor;
 
         current.x = e.clientX;
         current.y = e.clientY;
@@ -100,18 +106,16 @@ class Canvas extends React.Component {
 
     mouseUpHandler = e => {
         const current = this.props.currentCanvasData;
-        const { drawing } = current;
 
-        if (!drawing) {return};
+        if (!current.drawing) {return};
         changeCurrentCanvasData(current.drawing = false)
         this.drawLine(current.x, current.y, e.clientX, e.clientY, current.color, true);
     }
 
     mouseMoveHandler = e => {
         const current = this.props.currentCanvasData;
-        const { drawing } = current;
 
-        if (!drawing) {return};
+        if (!current.drawing) {return};
         this.drawLine(current.x, current.y, e.clientX, e.clientY, current.color, true);
         current.x = e.clientX;
         current.y = e.clientY;
@@ -132,14 +136,12 @@ class Canvas extends React.Component {
 
     dragOverHandler = (e, type) => {
         e.preventDefault();
-        if(type !== 'html') {
-            this.props.changeCurrentCanvasData({ ...this.props.currentCanvasData, draggingOut: false })
-        };
+        if(type !== 'html')
+          this.props.changeCurrentCanvasData({ ...this.props.currentCanvasData, draggingOut: false });
     }
 
-    dragLeaveHandler = () => {
+    dragLeaveHandler = () =>
         this.props.changeCurrentCanvasData({ ...this.props.currentCanvasData, draggingOut: true });
-    }
 
     dropHandler = e => {
         let { inputs } = this.props;
@@ -158,35 +160,8 @@ class Canvas extends React.Component {
         } else {
             inputsUpdate = inputs.filter(input => {
                 if(input.inputKey !== key) {return input};
-            })
-            this.props.setCanvasField(inputsUpdate);
-        }
-    }
-
-    createTextCanvas = () => {
-        const { width, height } = this.props.imageData;
-        const { inputs } = this.props;
-        
-        let canvas = document.createElement('canvas');
-        let context = canvas.getContext('2d');
-        canvas.width = width;
-        canvas.height = height;
-
-        if(inputs.length > 0) {
-            inputs.forEach(label => {
-                label = label.label.current;
-                const style = label.style;
-                const input = label.childNodes[1];
-                let fontSize = input.style.fontSize.replace('px', '');
-                fontSize = Number(fontSize) + 3 + 'px';
-                const left = Number(style.left.replace('px', ''));
-                const top = Number(style.top.replace('px', ''));
-
-                context.fillStyle = style.color;
-                context.font = fontSize + ' sans-serif';
-                context.fillText(input.value, left, top);
             });
-            return canvas;
+            this.props.setCanvasField(inputsUpdate);
         }
     }
 
@@ -201,7 +176,6 @@ class Canvas extends React.Component {
             dragLeaveHandler,
         } = this;
         const { width, height } = imageData;
-        console.log(width, height)
 
         const inputsElement = this.props.inputs.map(input => input.element);
 

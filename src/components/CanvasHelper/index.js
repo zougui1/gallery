@@ -10,7 +10,7 @@ const CanvasHelper = ({ handleModalClose, open }) => (
         aria-labelledby="simple-dialog-title"
         open={open}
     >
-        <DialogTitle>Overlay's helper</DialogTitle>
+        <DialogTitle>Tutorial</DialogTitle>
         <DialogContent>
             <DialogContentText>
                 <div style={{ fontSize: '1.13rem' }}>
@@ -21,6 +21,12 @@ const CanvasHelper = ({ handleModalClose, open }) => (
                         </li>
                         <li>
                             Create a textbox
+                        </li>
+                        <li>
+                            Move the textboxes
+                        </li>
+                        <li>
+                            Remove the textboxes by dropping them out of the image
                         </li>
                         <li>
                             Modify the color alpha
@@ -41,6 +47,9 @@ const CanvasHelper = ({ handleModalClose, open }) => (
                             Display/hide the text or the draw
                         </li>
                     </ul>
+                    <p>
+                        The textboxes are created at the top left of the image,
+                    </p>
                 </div>
             </DialogContentText>
         </DialogContent>

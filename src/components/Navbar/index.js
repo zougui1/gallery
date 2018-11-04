@@ -20,7 +20,7 @@ export class index extends Component {
         <AppBar position="static" style={{backgroundColor: '#2196f3'}}>
             <ToolBar>
                 <Typography variant="h6" color="inherit">
-                    <Link style={{color: '#fff'}} to="/">Dorg's gallery</Link>
+                    <Link style={{color: '#fff'}} to="/">Dorg gallery</Link>
                 </Typography>
                 <div style={{position: 'absolute', right: '10px'}}>
                   {

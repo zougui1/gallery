@@ -6,6 +6,7 @@ import { mapDynamicState } from '../../utils';
 import { gallery } from '../../store/actions';
 
 import { emit, on } from '../../socket/user';
+import Loading from '../Loading';
 
 const {
   displayOverlay,
@@ -23,8 +24,9 @@ class Image extends Component {
       overlays: {
         draw: React.createRef(),
         text: React.createRef()
-      }
+      },
   }
+  
 
   componentDidMount = () => {
       const id = this.props.match.params.id;
@@ -51,9 +53,16 @@ class Image extends Component {
     this.props.displayOverlay(newOverlays)
   }
 
+  validUrl = url => {
+    const regex = /(https?):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?/
+      if(regex.test(url)) return url;
+      return '#';
+  }
+
   render() { 
-    const image = this.state.image;
+    const { image } = this.state;
     const { showOverlay } = this.props;
+
     return (
       <div style={{position: 'relative'}}>
         {
@@ -83,13 +92,16 @@ class Image extends Component {
                 </div>
             </div>
             <div className="panel-row">
-              <a target="blank" style={{color: 'white'}} href={image.artistLink}>artist: {image.artistName}</a>
+              <span>artist: <a target="blank" style={{color: 'white'}} href={this.validUrl(image.artistLink)}>{image.artistName}</a></span>
               <br />
               <span>character: {image.characterName}</span>
             </div>
         </div>
+        <div style={{ display: 'flex', justifyContent: 'center' }}>
+          <Loading loading={!image.image} size={60} />
+        </div>
       </div>
-    )
+    );
   }
 }
 

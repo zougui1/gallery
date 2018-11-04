@@ -1,12 +1,10 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import Button from '@material-ui/core/Button';
-import uploadcare from 'uploadcare-widget'
 
 import { getPosition } from '../../../utils/';
 import { emit } from '../../../socket/upload';
 import { uploader } from '../../../store/actions/';
-import { mapDynamicState, b64ToBlob } from '../../../utils';
+import { mapDynamicState } from '../../../utils';
 
 import Swatches from './Swatches';
 import Canvas from './Canvas';
@@ -60,7 +58,6 @@ class Overlay extends React.Component {
         if((tempArr.length === 3 && hasTextCanvas) || (tempArr.length === 2 && !hasTextCanvas)) {
             const { imageData } = this.props;
             const imageDataWithCanvas = {...imageData, ...imagesToUpload};
-            console.log('upload')
             emit.uploadImage(imageDataWithCanvas);
         }
     }
@@ -114,58 +111,6 @@ class Overlay extends React.Component {
         });
     }
 
-    /**
-     * @var {Array} inputs
-     * @var {Object} input
-     * @var {Object} input.element-
-     * @var {Number} input.inputKey
-     * @var {Object} input.label
-     * @var {HTMLLabelElement} input.label.current
-     */
-    uploadHandler = () => {
-        const { canvas, imgRef } = this.props.canvasDatas;
-        const textCanvas = this.createTextCanvas();
-        this.uploader(b64ToBlob(imgRef.current.src), 'image');
-        canvas.toBlob(blob => this.uploader(blob, 'draw'));
-
-        if(textCanvas) {
-            textCanvas.toBlob(blob => this.uploader(blob, 'text'));
-        }
-        else {
-            this.props.changeCurrentCanvasData({ ...this.props.currentCanvasData, hasTextCanvas: false });
-        }
-    }
-
-    uploader = (image, type) => {
-        const fileUp = uploadcare.fileFrom('object', image);
-        
-        fileUp.done(file => {
-            let { imagesToUpload, addImageToUpload } = this.props;
-            console.log(file)
-            
-            imagesToUpload[type] = file.uuid + '/original';
-            addImageToUpload({ ...imagesToUpload, imagesToUpload, });
-            this.uploadToMongo();
-        });
-    }
-
-    uploadToMongo = () => {
-        const { imagesToUpload, currentCanvasData } = this.props;
-        const { hasTextCanvas } = currentCanvasData
-        let tempArr = [];
-        for (const key in imagesToUpload) {
-            if (imagesToUpload[key]) {
-                tempArr.push(1);
-            }
-        }
-        if((tempArr.length === 3 && hasTextCanvas) || (tempArr.length === 2 && !hasTextCanvas)) {
-            const { imageData } = this.props;
-            const imageDataWithCanvas = {...imageData, ...imagesToUpload};
-            console.log('upload')
-            emit.uploadImage(imageDataWithCanvas);
-        }
-    }
-
     handleModalClose = () => {
         this.setState({ modalOpen: false });
     };
@@ -180,7 +125,6 @@ class Overlay extends React.Component {
           imgRef,
           eraseChangeHandler,
           canvas,
-          uploadHandler,
           handleModalOpen,
           handleModalClose,
         } = this;
@@ -198,8 +142,6 @@ class Overlay extends React.Component {
 
         return (
             <div className="overlay-container">
-                {this.imgRef.current && console.log(this)}
-                {this.imgRef.current && console.log(this.imgRef.current.offsetHeight + 80 + 'px')}
                 <Canvas canvasDatas={canvasDatas} setRef={setRef} />
                 <img className="draw-on" ref={imgRef} src={imageData.imageTemp64} alt=""/>
                 
@@ -210,12 +152,6 @@ class Overlay extends React.Component {
                     lastFocused={lastFocused}
                     handleModalOpen={handleModalOpen}
                 />
-
-                {
-                    this.imgRef.current
-                    ? <Button variant="contained" color="primary" style={{userSelect: 'none', position: 'absolute', top: this.imgRef.current.offsetHeight + 20 + 'px', fontWeight: 'bold', marginLeft: '10px'}} onClick={uploadHandler}>Upload</Button>
-                    : <Button variant="contained" color="primary" style={{userSelect: 'none', position: 'absolute', bottom: 'calc(-89.5vh)', fontWeight: 'bold', marginLeft: '10px'}} onClick={uploadHandler}>Upload</Button>
-                }
                 <CanvasHelper open={this.state.modalOpen} onClose={handleModalClose} />
             </div>
         );

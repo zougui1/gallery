@@ -13,11 +13,12 @@ const {
 
 const mapDispatchToProps = dispatch => ({
     setCurrentPage: currentPage => dispatch(setCurrentPage(currentPage)),
+    setImages: images => dispatch(setImages(images)),
 });
 
-const _GetLink = ({ number, basePath, current, setCurrentPage }) => (
+const _GetLink = ({ number, basePath, current, setCurrentPage, setImages }) => (
     <li className={current ? 'active waves-effect' : 'waves-effect'}>
-        <Link onClick={() => setCurrentPage(number)} to={`${basePath}/${number}`}>{number}</Link>
+        <Link onClick={() => {setCurrentPage(number); setImages([])}} to={`${basePath}/${number}`}>{number}</Link>
     </li>
 );
 const GetLink = connect(null, mapDispatchToProps)(_GetLink);

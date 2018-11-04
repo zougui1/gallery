@@ -9,3 +9,6 @@
 * search bar in home page: search by, username/characterName/artistName
 * re-design everything (complexe/complete)
 * replace the pagination with infinite scroll
+
+## 3
+* make the canvas/image resizable with the mouse-wheel in the upload form

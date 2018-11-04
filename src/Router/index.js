@@ -4,6 +4,7 @@ import { Route } from 'react-router-dom';
 import ProtectedRoute from '../components/ProtectedRoute';
 
 import App from '../components/App';
+import Home from '../components/Home';
 import Form from '../components/Form';
 import Signup from '../components/Signup';
 import Login from '../components/Login';
@@ -12,8 +13,8 @@ import Image from '../components/Image';
 
 const Router = () => (
     <div style={{position: 'relative', top: '10px'}}>
-        <Route exact path="/" component={App} />
-        <Route exact path="/upload" component={Form} />
+        <Route exact path="/" component={Home} />
+        <ProtectedRoute exact path="/upload" component={Form} />
         <Route exact path="/signup" component={Signup} />
         <Route exact path="/login" component={Login} />
         <Route exact path="/user/:username" component={User} />
