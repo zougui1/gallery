@@ -17,4 +17,3 @@
 
 # bugs
 * Loading doesn't appear in the user's pages
-* Checboxes in /image/:id

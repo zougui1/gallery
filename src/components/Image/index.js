@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
 import { connect } from 'react-redux';
+import Checkbox from '@material-ui/core/Checkbox';
 
 
 import { mapDynamicState } from '../../utils';
@@ -25,6 +26,7 @@ class Image extends Component {
         draw: React.createRef(),
         text: React.createRef()
       },
+      showOverlayUpdated: false,
   }
   
 
@@ -35,22 +37,29 @@ class Image extends Component {
       on.getImageFromDB(image => {this.setState({ image: image });console.log(image)});
   }
 
-  showLayer = type => {
+  componentDidUpdate = (prevProps, prevState) => {
+    console.log(prevProps, this.props)
+  }
+  
+
+  showLayer = type => e => {
     const { overlays } = this.state;
     const { showOverlay } = this.props;
     const newOverlays = {
       ...showOverlay
     };
-    
+
     newOverlays[type] = !showOverlay[type];
     const element = overlays[type].current;
-    
-    if(newOverlays[type]) {
-      element.style.display = 'block';
-    } else {
-      element.style.display = 'none';
+
+    if (element) {
+      if (newOverlays[type]) {
+        element.style.display = 'block';
+      } else {
+        element.style.display = 'none';
+      }
+      this.props.displayOverlay(newOverlays)
     }
-    this.props.displayOverlay(newOverlays)
   }
 
   validUrl = url => {
@@ -82,9 +91,31 @@ class Image extends Component {
     return overlayElement;
   }
 
+  renderCheckbox = () => {
+    const { canvas } = this.state.image;
+    const { showLayer } = this;
+    const { showOverlay } = this.props;
+
+    let checkboxElement = [];
+    for (const key in canvas) {
+      checkboxElement.push(
+        <div>
+          <label htmlFor={`${key}Layer`}>Display {key}</label>
+          <Checkbox
+              onClick={showLayer(key)}
+              onChange={showLayer(key)}
+              checked={showOverlay[key]}
+              name={`${key}Layer`}
+              id={`${key}Layer`}
+          />
+        </div>
+      );
+    }
+    return checkboxElement;
+  }
+
   render() { 
     const { image } = this.state;
-    const { showOverlay } = this.props;
 
     return (
       <div style={{position: 'relative'}}>
@@ -93,20 +124,16 @@ class Image extends Component {
         </div>
         
         <div style={{color: 'white', marginTop: '65px'}} className="colors color-picker-panel">
-            <div className="panel-row">
-                <div>
-                    <label htmlFor="drawLayer">Display draw</label>
-                    <input checked={showOverlay.draw} onChange={() => this.showLayer('draw')} type="checkbox" name="drawLayer" id="drawLayer" />
-                    <br />
-                    <label htmlFor="textLayer">Display text</label>
-                    <input checked={showOverlay.text} onChange={() => this.showLayer('text')} type="checkbox" name="textLayer" id="textLayer" />
-                </div>
+          <div className="panel-row">
+            <div>
+              {this.renderCheckbox()}
             </div>
-            <div className="panel-row">
-              <span>artist: <a target="blank" style={{color: 'white'}} href={this.validUrl(image.artistLink)}>{image.artistName}</a></span>
-              <br />
-              <span>character: {image.characterName}</span>
-            </div>
+          </div>
+          <div className="panel-row">
+            <span>Artist: <a target="blank" style={{color: 'white'}} href={this.validUrl(image.artistLink)}>{image.artistName}</a></span>
+            <br />
+            <span>Character: {image.characterName}</span>
+          </div>
         </div>
         <div style={{ display: 'flex', justifyContent: 'center' }}>
           <Loading loading={!image.image} size={60} />
