@@ -25,15 +25,10 @@ class CanvasField extends React.Component {
         return nextProps.inputs != this.props.inputs;
     }
 
-    componentDidUpdate = () => {
-        console.log(this.props.inputs)
-    }
-
     onInputClick = e => {
         let { inputs } = this.props;
         let current = this.props.currentCanvasData;
         const key = Number(e.target.getAttribute('data-key'));
-        console.log(inputs)
         
         inputs.forEach(input => {
             if(input.inputKey === key) {

@@ -16,6 +16,7 @@ exports.getImageById = id => {
 }
 
 exports.setImage = image => {
+    console.log('setImage')
     let imageSave = new Image({
             image: image.image,
             canvas: {

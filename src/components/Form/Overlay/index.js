@@ -111,17 +111,6 @@ class Overlay extends React.Component {
         });
     }
 
-    editDrawStyle = checked => {
-        if(checked) this.props.changeCurrentCanvasData({
-            ...this.props.currentCanvasData,
-            contextAction: 'ellipse',
-        });
-        else this.props.changeCurrentCanvasData({
-            ...this.props.currentCanvasData,
-            contextAction: 'draw',
-        });
-    }
-
     handleModalClose = () => {
         this.setState({ modalOpen: false });
     };
@@ -138,7 +127,6 @@ class Overlay extends React.Component {
           canvas,
           handleModalOpen,
           handleModalClose,
-          editDrawStyle,
         } = this;
       const { imageData, } = this.props;
       const {
@@ -163,7 +151,6 @@ class Overlay extends React.Component {
                     eraseChangeHandler={eraseChangeHandler}
                     lastFocused={lastFocused}
                     handleModalOpen={handleModalOpen}
-                    editDrawStyle={editDrawStyle}
                 />
                 <CanvasHelper open={this.state.modalOpen} onClose={handleModalClose} />
             </div>

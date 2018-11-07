@@ -12,8 +12,6 @@
 ## 3
 * cache server
 
-## 4
-* overlay, editable size, drew with full opacity when mouseMove and save the coord in an object in array then redraw the path when mouseUp
-
 # bugs
 * Loading doesn't appear in the user's pages
+* image from the overlay are not uploaded, `uploadToMongo` function is not called

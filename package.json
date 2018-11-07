@@ -36,10 +36,12 @@
     "winston": "^3.1.0"
   },
   "scripts": {
-    "server": "nodemon server/index.js",
+    "server:loc": "nodemon server/index.js",
+    "server:vps": "pm2 start server/index.js",
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "build:server": "react-scripts build && pm2 kill && pm2 start server/index.js && serve -s build",
+    "build:server": "react-scripts build && pm2 restart all && serve -s build",
+    "build:restart": "react-scripts build && pm2 restart all",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },

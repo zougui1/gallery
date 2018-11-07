@@ -16,15 +16,6 @@ code {
 a {
   text-decoration: none !important;
 }
-
-/*!
- * Materialize v1.0.0 (http://materializecss.com)
- * Copyright 2014-2017 Materialize
- * MIT License (https://raw.githubusercontent.com/Dogfalo/materialize/master/LICENSE)
- */
-
-
-/*! normalize.css v7.0.0 | MIT License | github.com/necolas/normalize.css */
 html {
   line-height: 1.15;
   -ms-text-size-adjust: 100%;
