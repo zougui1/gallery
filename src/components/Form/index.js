@@ -7,10 +7,13 @@ import Overlay from './Overlay';
 import './form.scss';
 
 const mapStateToProps = state => ({ view: state.uploaderReducer.view });
-const Form = ({ view }) =>  {
+class Form extends React.Component  {
+    render() {
+        console.log('t')
     const components = { Uploader: Uploader, Overlay: Overlay }
-    const Component = components[view];
+    const Component = components[this.props.view];
     return <Component />
+    }
 }
 
 export default connect(mapStateToProps)(Form);

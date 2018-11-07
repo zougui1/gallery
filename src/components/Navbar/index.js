@@ -27,7 +27,7 @@ export class index extends Component {
                     loggedUsername
                     ? (
                         <Button>
-                          <Link style={{color: '#fff'}} to={'/upload'}>Upload an image</Link>
+                          <Link style={{color: '#fff'}} to="/upload">Upload an image</Link>
                         </Button>
                       )
                     : ''

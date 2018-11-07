@@ -19,10 +19,10 @@ const {
 } = uploader;
 
 
-const mapStateToProps = state => ({
-  tagsList: state.initReducer.tagsList,
-  loggedUsername: state.authReducer.loggedUsername,
-})
+const mapStateToProps = mapDynamicState({
+  init: 'tagsList',
+  auth: 'loggedUsername',
+});
 
 const mapDispatchToProps = dispatch => ({ 
   changeFormView: view => dispatch(changeFormView(view)),

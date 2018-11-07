@@ -1,12 +1,14 @@
 export const _mapDynamicState = (stateList, reducerName) => state => {
     let tempState = {};
-    if(typeof stateList == 'string' || 'array') {
-        if(!Array.isArray(stateList)) stateList = stateList.split(' ');
+    const isArray = Array.isArray(stateList);
+    if(typeof stateList === 'string' || isArray) {
+        if(!isArray) stateList = stateList.split(' ');
         stateList.forEach(element => tempState[element] = state[reducerName + 'Reducer'][element]);
     } else if(typeof stateList == 'object') {
         for (const key in stateList) {
-            stateList[key] = stateList[key].split(' ');
-            stateList[key].forEach(element => tempState[element] = state[key + 'Reducer'][element]);
+            let statePart = stateList[key];
+            if(!Array.isArray(statePart)) statePart = statePart.split(' ');
+            statePart.forEach(element => tempState[element] = state[key + 'Reducer'][element]);
         }
     }
     return tempState;

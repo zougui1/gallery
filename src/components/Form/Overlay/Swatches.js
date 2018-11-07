@@ -46,6 +46,9 @@ class Swatches extends React.Component {
         loading: false,
         uploadCompleted: false,
         numberOfUploadCompleted: 0,
+        strokeStyleCheckbox: React.createRef(),
+        strokeStyle: false,
+        strokeSizeSliderValue: 10,
     }
 
     componentDidUpdate = (prevProps, prevState) => {
@@ -125,6 +128,10 @@ class Swatches extends React.Component {
         this.setState({
             [name]: checked
         });
+        if(name === 'strokeStyle') {
+            this.props.editDrawStyle(checked);
+            return;
+        }
         this[name]();
     }
 
@@ -254,6 +261,9 @@ class Swatches extends React.Component {
             eraseSizeSliderValue,
             loading,
             uploadCompleted,
+            strokeStyle,
+            strokeStyleCheckbox,
+            strokeSizeSliderValue,
         } = this.state;
         const {
             handleModalOpen,
@@ -274,7 +284,7 @@ class Swatches extends React.Component {
                     </div>
                 </div>
                 <div className="panel-row">
-                    <label style={{color: 'white'}} htmlFor="alpha">Alpha</label>
+                    <label style={{color: 'white'}} htmlFor="alpha">Opacity</label>
                     <Slider
                         style={{padding: '10px 0'}}
                         id="alpha"
@@ -330,6 +340,31 @@ class Swatches extends React.Component {
                         id="mainLayer"
                         ref={mainLayerCheckbox}
                     />
+                    <br/>
+                    <label htmlFor="strokeStyle">Editable stroke size <span style={{color: '#f88000'}}>(experimental)</span></label>
+                    <Checkbox
+                        onClick={handleCheckboxChange('strokeStyle')}
+                        onChange={handleCheckboxChange('strokeStyle')}
+                        checked={strokeStyle}
+                        name="strokeStyle"
+                        id="strokeStyle"
+                        ref={strokeStyleCheckbox}
+                    />
+                    {
+                        this.props.currentCanvasData.contextAction === 'ellipse' &&
+                        <div>
+                            <label style={{color: 'white'}} htmlFor="strokeSize">Stroke size</label>
+                            <Slider
+                                style={{padding: '10px 0'}}
+                                id="strokeSize"
+                                value={strokeSizeSliderValue}
+                                step={1}
+                                min={2}
+                                max={50}
+                                onChange={onSlideChange('stroke')}
+                            />
+                        </div>
+                    }
 
                     <br/>
                     <Button style={{color: '#fff'}} onClick={createInput} >Create a textbox</Button>

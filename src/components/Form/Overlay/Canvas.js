@@ -26,6 +26,8 @@ class Canvas extends React.Component {
         super(props);
         this.state = {
             inputKey: 0,
+            circleSize: 10,
+            lineSize: 3,
         }
     }
 
@@ -34,26 +36,60 @@ class Canvas extends React.Component {
         const htmlElement = document.getElementsByTagName('html')[0];
         htmlElement.addEventListener('dragover', e => this.dragOverHandler(e, 'html'));
         htmlElement.addEventListener('drop', this.dropHandler);
+        window.setCircleSize = circleSize => this.props.changeCurrentCanvasData({...this.props.currentCanvasData, strokeSize: circleSize});
+        window.setLineSize = lineSize => this.setState({lineSize});
+        window.putImageData = (alpha, dx, dy,
+            dirtyX, dirtyY, dirtyWidth, dirtyHeight) => {
+            var ctx = this.props.currentCanvasData.context;
+            ctx.globalAlpha = alpha;
+            console.log(ctx.globalAlpha)
+            var imageData = ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height);
+            ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+            var data = imageData.data;
+            var height = imageData.height;
+            var width = imageData.width;
+            dx = dx || 0;
+            dy = dy || 0;
+            dirtyX = dirtyX || 0;
+            dirtyY = dirtyY || 0;
+            dirtyWidth = dirtyWidth !== undefined ? dirtyWidth : width;
+            dirtyHeight = dirtyHeight !== undefined ? dirtyHeight : height;
+            var limitBottom = Math.min(dirtyHeight, height);
+            var limitRight = Math.min(dirtyWidth, width);
+            for (var y = dirtyY; y < limitBottom; y++) {
+                for (var x = dirtyX; x < limitRight; x++) {
+                    var pos = y * width + x;
+                    ctx.fillStyle = 'rgba(' + data[pos * 4 + 0] +
+                        ',' + data[pos * 4 + 1] +
+                        ',' + data[pos * 4 + 2] +
+                        ',' + (data[pos * 4 + 3] / 255) + ')';
+                    ctx.fillRect(x + dx, y + dy, 1, 1);
+                }
+            }
+        }
     }
 
     drawLine = (x0, y0, x1, y1, color) => {
         const { canvasPositions } = this.props.canvasDatas;
         const { context, contextAction,  } = this.props.currentCanvasData;
         const current = this.props.currentCanvasData;
-        const { top, left } = canvasPositions;
+        let { top, left } = canvasPositions;
         const windowOffsetTop = window.pageYOffset;
-        const windowOffsetleft = window.pageXOffset;
-        x0 -= left - windowOffsetleft;
-        y0 -= top - windowOffsetTop;
+        const windowOffsetLeft = window.pageXOffset;
+        top -= windowOffsetTop;
+        left -= windowOffsetLeft;
+        x0 -= left;
+        y0 -= top;
+        x1 -= left;
+        y1 -= top;
 
         if(contextAction === 'draw') {
-            x1 -= left - windowOffsetleft;
-            y1 -= top - windowOffsetTop;
             context.beginPath();
             context.moveTo(x0, y0);
             context.lineTo(x1, y1);
             context.strokeStyle = color;
-            context.lineWidth = 3;
+            context.lineWidth = this.state.lineSize || 3;
+            context.lineCap = 'butt';
             context.stroke();
             context.closePath();
         } else if(contextAction === 'erase') {
@@ -61,7 +97,17 @@ class Canvas extends React.Component {
             x0 = x0 - (eraseSize / 2);
             y0 = y0 - (eraseSize / 2);
             context.clearRect(x0, y0, eraseSize, eraseSize);
-        }
+        } else if(contextAction === 'ellipse') { //! temp
+            const strokeSize = this.props.currentCanvasData.strokeSize;
+            context.beginPath();
+            context.moveTo(x0, y0);
+            context.lineTo(x1, y1);
+            context.strokeStyle = color;
+            context.lineWidth = strokeSize;
+            context.lineCap = 'round';
+            context.stroke();
+            context.closePath();
+        } //! end temp
     }
 
     drawArrow = (fromx, fromy, tox, toy) => {

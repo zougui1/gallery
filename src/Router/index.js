@@ -1,9 +1,8 @@
 import React from 'react';
-import { Route } from 'react-router-dom';
+import { Route, Switch } from 'react-router-dom';
 
 import ProtectedRoute from '../components/ProtectedRoute';
 
-import App from '../components/App';
 import Home from '../components/Home';
 import Form from '../components/Form';
 import Signup from '../components/Signup';
@@ -12,20 +11,17 @@ import User from '../components/User';
 import Image from '../components/Image';
 
 const Router = () => (
-    <div style={{position: 'relative', top: '10px'}}>
-        <Route exact path="/" component={Home} />
-        <ProtectedRoute exact path="/upload" component={Form} />
-        <Route exact path="/signup" component={Signup} />
-        <Route exact path="/login" component={Login} />
-        <Route exact path="/user/:username" component={User} />
-        <Route exact path="/user/:username/:page" component={User} />
-        <Route exact path="/image/:id" component={Image} />
-    </div>
+    <Switch>
+        <div style={{position: 'relative', top: '10px'}}>
+            <Route exact path="/" component={Home} />
+            <ProtectedRoute exact path="/upload" component={Form} />
+            <Route exact path="/signup" component={Signup} />
+            <Route exact path="/login" component={Login} />
+            <Route exact path="/user/:username" component={User} />
+            <Route exact path="/user/:username/:page" component={User} />
+            <Route exact path="/image/:id" component={Image} />
+        </div>
+    </Switch>
 );
-
-//TODO
-/*
-    <ProtectedRoute exact path="/upload" component={Form} />
-    <Route exact path="/user/:username" component={User} />*/
 
 export default Router;

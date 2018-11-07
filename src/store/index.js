@@ -2,7 +2,6 @@ import { createStore, applyMiddleware, compose } from 'redux';
 //import { createStore } from 'redux';
 
 import rootReducer from './reducers';
-import defaultState from './defaultState';
 import _init from './init';
 import { getImageByTag, getImagesByCurrentPage } from './middlewares';
 
@@ -17,7 +16,7 @@ if(window.devToolsExtension) {
 
 const enhancers = compose(appliedMiddleware, ...devTools);
 
-const store = createStore(rootReducer, defaultState, enhancers);
+const store = createStore(rootReducer, enhancers);
 
 _init.init();
 

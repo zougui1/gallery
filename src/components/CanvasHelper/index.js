@@ -7,6 +7,7 @@ import withMobileDialog from '@material-ui/core/withMobileDialog';
 
 const CanvasHelper = ({ handleModalClose, open }) => (
     <Dialog
+        style={{ zIndex: 99999999999 }}
         aria-labelledby="simple-dialog-title"
         open={open}
     >

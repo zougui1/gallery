@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
 import { connect } from 'react-redux';
+import Checkbox from '@material-ui/core/Checkbox';
 
 import { mapDynamicState } from '../../utils';
 import { gallery } from '../../store/actions';
@@ -39,13 +40,21 @@ class RightPanel extends Component {
   };
 
   render() {
-    const { handleTagsInputChange } = this;
+    const { handleTagsInputChange, handleChange } = this;
+    const { showOverlay } = this.props;
     return (
       <div>
-        <div style={{color: '#fff'}} className="colors color-picker-panel">
+        <div style={{color: '#fff', marginTop: '65px'}} className="colors color-picker-panel">
           <div className="panel-row">
             <label htmlFor="showOverlay">Display overlay</label>
-            <input onChange={this.handleChange} checked={this.props.showOverlay.all} type="checkbox" name="showOverlay" id="showOverlay" />
+            <Checkbox
+              onClick={handleChange}
+              onChange={handleChange}
+              checked={showOverlay.all}
+              name="showOverlay"
+              id="showOverlay"
+            />
+
             <br/>
             <TagsInput tags={this.props.filter} handleChange={handleTagsInputChange} />
             </div>
