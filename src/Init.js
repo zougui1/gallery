@@ -27,4 +27,4 @@ export class Init extends React.Component {
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(Init)
+export default connect(mapStateToProps, mapDispatchToProps)(Init);

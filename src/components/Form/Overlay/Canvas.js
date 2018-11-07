@@ -36,48 +36,19 @@ class Canvas extends React.Component {
         const htmlElement = document.getElementsByTagName('html')[0];
         htmlElement.addEventListener('dragover', e => this.dragOverHandler(e, 'html'));
         htmlElement.addEventListener('drop', this.dropHandler);
-        window.setCircleSize = circleSize => this.props.changeCurrentCanvasData({...this.props.currentCanvasData, strokeSize: circleSize});
-        window.setLineSize = lineSize => this.setState({lineSize});
-        window.putImageData = (alpha, dx, dy,
-            dirtyX, dirtyY, dirtyWidth, dirtyHeight) => {
-            var ctx = this.props.currentCanvasData.context;
-            ctx.globalAlpha = alpha;
-            console.log(ctx.globalAlpha)
-            var imageData = ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height);
-            ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-            var data = imageData.data;
-            var height = imageData.height;
-            var width = imageData.width;
-            dx = dx || 0;
-            dy = dy || 0;
-            dirtyX = dirtyX || 0;
-            dirtyY = dirtyY || 0;
-            dirtyWidth = dirtyWidth !== undefined ? dirtyWidth : width;
-            dirtyHeight = dirtyHeight !== undefined ? dirtyHeight : height;
-            var limitBottom = Math.min(dirtyHeight, height);
-            var limitRight = Math.min(dirtyWidth, width);
-            for (var y = dirtyY; y < limitBottom; y++) {
-                for (var x = dirtyX; x < limitRight; x++) {
-                    var pos = y * width + x;
-                    ctx.fillStyle = 'rgba(' + data[pos * 4 + 0] +
-                        ',' + data[pos * 4 + 1] +
-                        ',' + data[pos * 4 + 2] +
-                        ',' + (data[pos * 4 + 3] / 255) + ')';
-                    ctx.fillRect(x + dx, y + dy, 1, 1);
-                }
-            }
-        }
+        htmlElement.addEventListener('mouseup', this.mouseUpHandler);
     }
+    
 
-    drawLine = (x0, y0, x1, y1, color) => {
+    drawLine = (x0, y0, x1, y1) => {
         const { canvasPositions } = this.props.canvasDatas;
-        const { context, contextAction,  } = this.props.currentCanvasData;
         const current = this.props.currentCanvasData;
+        const { context, contextAction,  } = current;
         let { top, left } = canvasPositions;
         const windowOffsetTop = window.pageYOffset;
         const windowOffsetLeft = window.pageXOffset;
-        top -= windowOffsetTop;
         left -= windowOffsetLeft;
+        top -= windowOffsetTop;
         x0 -= left;
         y0 -= top;
         x1 -= left;
@@ -87,7 +58,7 @@ class Canvas extends React.Component {
             context.beginPath();
             context.moveTo(x0, y0);
             context.lineTo(x1, y1);
-            context.strokeStyle = color;
+            context.strokeStyle = current.color;
             context.lineWidth = this.state.lineSize || 3;
             context.lineCap = 'butt';
             context.stroke();
@@ -97,44 +68,7 @@ class Canvas extends React.Component {
             x0 = x0 - (eraseSize / 2);
             y0 = y0 - (eraseSize / 2);
             context.clearRect(x0, y0, eraseSize, eraseSize);
-        } else if(contextAction === 'ellipse') { //! temp
-            const strokeSize = this.props.currentCanvasData.strokeSize;
-            context.beginPath();
-            context.moveTo(x0, y0);
-            context.lineTo(x1, y1);
-            context.strokeStyle = color;
-            context.lineWidth = strokeSize;
-            context.lineCap = 'round';
-            context.stroke();
-            context.closePath();
-        } //! end temp
-    }
-
-    drawArrow = (fromx, fromy, tox, toy) => {
-        const ctx = this.props.currentCanvasData.context;
-        //variables to be used when creating the arrow
-        var headlen = 6;
-        var angle = Math.atan2(toy - fromy, tox - fromx);
-        //starting path of the arrow from the start square to the end square and drawing the stroke
-        ctx.beginPath();
-        ctx.moveTo(fromx, fromy);
-        ctx.lineTo(tox, toy);
-        ctx.strokeStyle = "#cc0000";
-        ctx.lineWidth = 10;
-        ctx.stroke();
-        //starting a new path from the head of the arrow to one of the sides of the point
-        ctx.beginPath();
-        ctx.moveTo(tox, toy);
-        ctx.lineTo(tox - headlen * Math.cos(angle - Math.PI / 7), toy - headlen * Math.sin(angle - Math.PI / 7));
-        //path from the side point of the arrow, to the other side point
-        ctx.lineTo(tox - headlen * Math.cos(angle + Math.PI / 7), toy - headlen * Math.sin(angle + Math.PI / 7));
-        //path from the side point back to the tip of the arrow, and then again to the opposite side point
-        ctx.lineTo(tox, toy);
-        ctx.lineTo(tox - headlen * Math.cos(angle - Math.PI / 7), toy - headlen * Math.sin(angle - Math.PI / 7));
-        //draws the paths created above
-        ctx.strokeStyle = "#cc0000";
-        ctx.lineWidth = 22;
-        ctx.stroke();
+        }
     }
 
     mouseDownHandler = e => {
@@ -197,15 +131,24 @@ class Canvas extends React.Component {
         if(!this.props.currentCanvasData.draggingOut) {
             inputs.forEach(input => {
                 if(input.inputKey === key) {
+                    let { top, left } = this.props.canvasDatas.canvasPositions;
+                    let x = e.clientX;
+                    let y = e.clientY;
+                    const windowOffsetTop = window.pageYOffset;
+                    const windowOffsetLeft = window.pageXOffset;
+                    left -= windowOffsetLeft;
+                    top -= windowOffsetTop;
+                    x -= left;
+                    y -= top;
                     let currentLabel = input.label.current;
-                    currentLabel.style.top = e.clientY + 'px';
-                    currentLabel.style.left = e.clientX + 'px';
+                    currentLabel.style.top = y + 'px';
+                    currentLabel.style.left = x + 'px';
                     this.props.editCanvasField(input, key);
                 }
             });
         } else {
             inputsUpdate = inputs.filter(input => {
-                if(input.inputKey !== key) {return input};
+                if(input.inputKey !== key) return input;
             });
             this.props.setCanvasField(inputsUpdate);
         }
@@ -215,7 +158,6 @@ class Canvas extends React.Component {
         const { imageData } = this.props;
         const {
             mouseDownHandler,
-            mouseUpHandler,
             mouseMoveHandler,
             throttle,
             dragOverHandler,
@@ -235,7 +177,6 @@ class Canvas extends React.Component {
                         width={width && width - 300}
                         height={height && height}
                         onMouseDown={mouseDownHandler}
-                        onMouseUp={mouseUpHandler}
                         onMouseMove={throttle(mouseMoveHandler, 10)}
                     ></canvas>
                     {inputsElement}
