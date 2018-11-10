@@ -10,6 +10,7 @@ const {
     SET_CANVAS_FIELD,
     ADD_CANVAS_LABEL,
     EDIT_CANVAS_LABEL,
+    RESET_REDUCER,
 } = uploader;
 
 export const changeFormView = viewName => ({ type: CHANGE_FORM_VIEW, payload: viewName });
@@ -21,3 +22,4 @@ export const editCanvasField = (field, id) => ({ type: EDIT_CANVAS_FIELD, payloa
 export const setCanvasField = fields => ({ type: SET_CANVAS_FIELD, payload: fields });
 export const addCanvasLabel = label => ({ type: ADD_CANVAS_LABEL, payload: label });
 export const editCanvasLabel = (label, id) => ({ type: EDIT_CANVAS_LABEL, payload: { element: label, id: id } });
+export const resetReducer = () => ({ type: RESET_REDUCER });

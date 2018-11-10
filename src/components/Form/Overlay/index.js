@@ -21,7 +21,7 @@ const mapDispatchToProps = dispatch => ({
   addImageToUpload: image => dispatch(addImageToUpload(image)),
   changeImageData: canvasSize => dispatch(changeImageData(canvasSize)),
   changeCurrentCanvasData: contextAction => dispatch(changeCurrentCanvasData(contextAction)),
- });
+});
 class Overlay extends React.Component {
     constructor(props) {
         super(props);

@@ -9,18 +9,29 @@ import store from "./store";
 import Navbar from './components/Navbar';
 import Router from './Router';
 import Init from './Init';
+import socket from './socket/config';
 
-const Root = () => (
-    <Provider store={store}>
-        <BrowserRouter>
-            <div>
-                <Init />
-                <Navbar />
-                <Router />
-            </div>
-        </BrowserRouter>
-    </Provider>
-);
+class Root extends React.Component {
+
+    componentWillUnmount = () => {
+      socket.emit('disconnect');
+    }
+    
+
+    render() {
+        return (
+            <Provider store={store}>
+                <BrowserRouter>
+                    <div>
+                        <Init />
+                        <Navbar />
+                        <Router />
+                    </div>
+                </BrowserRouter>
+            </Provider>
+        );
+    }
+}
 
 ReactDOM.render(<Root />, document.getElementById('root'));
 

@@ -1,5 +1,5 @@
 import { _getPosition, _b64ToBlob, _passwordMatch, _inArray } from './other';
-import { _mapDynamicState } from './redux';
+import { mapDynamicState as _mapDynamicState } from './redux';
 
 export { _mapDynamicState as mapDynamicState };
 export { _getPosition as getPosition };

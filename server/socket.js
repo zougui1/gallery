@@ -5,7 +5,8 @@ io.on('connection', socket => {
     console.log('socket on');
     
     socket.on('uploadImage', data => {
-        mongoose.setImage(data).then(imageData => socket.emit('retrieveImage', imageData));
+        console.log('uploadImage call')
+        if(data.image) mongoose.setImage(data).then(imageData => socket.emit('retrieveImage', imageData));
     })
 
     socket.on('signup', user => {
@@ -29,7 +30,7 @@ io.on('connection', socket => {
     })
 
     socket.on('retrieveImagesByUser', req => { mongoose.getImagesByUser(req.username, req.page)
-        .then(images => {socket.emit('retrieveImagesFromDB', images);console.log(images)})
+        .then(images => socket.emit('retrieveImagesFromDB', images))
         .catch(err => console.error(err))
     })
 
@@ -52,4 +53,6 @@ io.on('connection', socket => {
         .then(console.log)
         .catch(console.log)
     })
+
+    socket.on('disconnect', () => console.log('disconnect'))
 });

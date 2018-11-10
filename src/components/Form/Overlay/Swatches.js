@@ -21,15 +21,19 @@ const {
     addCanvasLabel,
     editCanvasField,
     setCanvasField,
+    addImageToUpload,
+    resetReducer,
 } = uploader;
 
-const mapStateToProps = mapDynamicState('currentCanvasData imageData inputs labels', 'uploader');
+const mapStateToProps = mapDynamicState('currentCanvasData imageData inputs labels imagesToUpload', 'uploader');
 const mapDispatchToProps = dispatch => ({ 
   changeCurrentCanvasData: currentCanvasData => dispatch(changeCurrentCanvasData(currentCanvasData)),
   addCanvasField: field => dispatch(addCanvasField(field)),
   addCanvasLabel: label => dispatch(addCanvasLabel(label)),
   editCanvasField: (field, id) => dispatch(editCanvasField(field, id)),
   setCanvasField: field => dispatch(setCanvasField(field)),
+  addImageToUpload: images => dispatch(addImageToUpload(images)),
+  resetReducer: () => dispatch(resetReducer()),
  });
 class Swatches extends React.Component {
     state = {
@@ -57,6 +61,12 @@ class Swatches extends React.Component {
             this.setState({ uploadCompleted: true });
         else this.setState({ uploadCompleted: false });
       }
+    }
+    
+    componentWillUnmount = () => {
+        console.log(this.props.state.uploaderReducer)
+      this.props.resetReducer();
+      console.log(this.props.state.uploaderReducer)
     }
     
 
@@ -161,8 +171,9 @@ class Swatches extends React.Component {
         
         let canvas = document.createElement('canvas');
         let context = canvas.getContext('2d');
-        canvas.width = width;
+        canvas.width = width - 300;
         canvas.height = height;
+        console.log(width, height)
 
         if(inputs.length > 0) {
             inputs.forEach(label => {
@@ -188,11 +199,13 @@ class Swatches extends React.Component {
         this.uploader(b64ToBlob(imgRef.current.src), 'image');
         canvas.toBlob(blob => this.uploader(blob, 'draw'));
         this.setState({ loading: true });
+        console.log('uploadHandler')
 
         if (textCanvas) {
             textCanvas.toBlob(blob => this.uploader(blob, 'text'));
         } else {
-            this.props.changeCurrentCanvasData({ ...this.props.currentCanvasData,
+            this.props.changeCurrentCanvasData({
+                ...this.props.currentCanvasData,
                 hasTextCanvas: false
             });
         }
@@ -200,35 +213,34 @@ class Swatches extends React.Component {
 
     uploader = (image, type) => {
         const fileUp = uploadcare.fileFrom('object', image);
+        console.log('uploader', fileUp)
 
         fileUp.done(file => {
             let { imagesToUpload, addImageToUpload } = this.props;
-            console.log(file)
+            console.log('upload done')
             
             imagesToUpload[type] = file.uuid + '/original';
-            addImageToUpload({ ...imagesToUpload, imagesToUpload, });
-            this.uploadToMongo();
+            addImageToUpload({ imagesToUpload, });
 
             this.setState({ numberOfUploadCompleted: this.state.numberOfUploadCompleted + 1 });
+            this.uploadToMongo()
         });
     }
 
     uploadToMongo = () => {
-        console.log('upload to mongo')
         const { imagesToUpload, currentCanvasData } = this.props;
         const { hasTextCanvas } = currentCanvasData
+        console.log(imagesToUpload)
         let tempArr = [];
         for (const key in imagesToUpload) {
-            if (imagesToUpload[key]) {
-                tempArr.push(1);
-            }
+            if (imagesToUpload[key]) tempArr.push(1);
         }
-        console.log(tempArr.length, hasTextCanvas)
         if((tempArr.length === 3 && hasTextCanvas) || (tempArr.length === 2 && !hasTextCanvas)) {
+            console.log('to mongo')
             const { imageData } = this.props;
             const imageDataWithCanvas = { ...imageData, ...imagesToUpload };
-            console.log('upload')
             emit.uploadImage(imageDataWithCanvas);
+            this.setState({ uploadCompleted: true });
         }
     }
 

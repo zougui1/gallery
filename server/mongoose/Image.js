@@ -1,4 +1,6 @@
 const Image = require('../models/Image');
+const User = require('../models/User');
+const mongoose = require('mongoose');
 
 const imagePerPage = 30;
 
@@ -28,7 +30,7 @@ exports.setImage = image => {
             artistName: image.artistName,
             artistLink: image.artistLink,
             characterName: image.characterName,
-            username: image.username
+            username: image.username,
         })
     return imageSave.save();
 }

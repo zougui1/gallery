@@ -1,18 +1,18 @@
 const mongoose = require('mongoose');
 
 const imageSchema = mongoose.Schema({
-    image: String,
+    image: {type: String, required: true},
     canvas: {
         text: String,
         draw: String
     },
-    tags: Array,
-    isNsfw: Boolean,
+    tags: {type: Array, required: true},
+    isNsfw: {type: Boolean, required: true},
     artistName: String,
     artistLink: String,
     characterName: String,
-    userId: String,
-    username: String,
+    username: {type: String, required: true},
 });
 
 module.exports = mongoose.model('Image', imageSchema);
+exports.ObjectId = mongoose.Types.ObjectId;

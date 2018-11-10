@@ -10,6 +10,7 @@ const {
     SET_CANVAS_FIELD,
     ADD_CANVAS_LABEL,
     EDIT_CANVAS_LABEL,
+    RESET_REDUCER,
 } = uploader;
 
 const uploaderState = {
@@ -88,6 +89,8 @@ const uploaderReducer = (state = uploaderState, action) => {
                 ...state,
                 labels: updatedLabels
             };
+        case RESET_REDUCER:
+            return {...uploaderState};
     
         default: return { ...state };
     }

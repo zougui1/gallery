@@ -6,7 +6,7 @@ export const on = {
 }
 
 export const emit = {
-    uploadImage: data => {socket.emit('uploadImage', data);console.log('setImage socket emit')},
+    uploadImage: data => socket.emit('uploadImage', data),
     getAllTags: data => socket.emit('getAllTags'),
     createTags: tags => socket.emit('createTag', tags),
 }
