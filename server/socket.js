@@ -24,14 +24,12 @@ io.on('connection', socket => {
                         socket.emit('uploaded');
                     })
                     .catch(err => {
-                        console.log(err);
                         socket.emit('uploadError')
                         errorLogger(err);
                     });
             })
             .catch(err => {
                 socket.emit('uploadError');
-                //console.log(err)
                 errorLogger(err);
             });
     })
@@ -39,7 +37,10 @@ io.on('connection', socket => {
     socket.on('signup', user => {
         mongoose.signup(user)
         .then(() => socket.emit('userCreated'))
-        .catch(() => socket.emit('usernameAlreadyUsed', { usernameAlreadyUsed: 'This username is already used.' }));
+        .catch(() => {
+            socket.emit('usernameAlreadyUsed', { usernameAlreadyUsed: 'This username is already used.' });
+            errorLogger(err);
+        });
     })
 
     socket.on('login', user => {
@@ -53,37 +54,40 @@ io.on('connection', socket => {
                     ? socket.emit('logged', newUserObject)
                     : socket.emit('passwordIncorrect', 'The password is incorrect.');
             })
-        }).catch(() => socket.emit('userNotFound', 'User not found.'));
+        }).catch(() => {
+            socket.emit('userNotFound', 'User not found.');
+            errorLogger(err);
+        });
     })
 
     socket.on('retrieveImagesByUser', req => { mongoose.getImagesByUser(req.username, req.page)
         .then(images => socket.emit('retrieveImagesFromDB', images))
-        .catch(err => console.error(err))
+        .catch(errorLogger)
     })
 
     socket.on('getImageById', id => { mongoose.getImageById(id)
         .then(image => socket.emit('getImageFromDB', image))
-        .catch(err => console.log(err))
+        .catch(errorLogger)
     })
 
     socket.on('createTag', tags => { mongoose.setTags(tags, mongoose.getAllTags())
-        .then(tags => console.log('tag created'))
-        .catch(console.log)
+        .then(() => console.log('tag created'))
+        .catch(errorLogger)
     })
 
     socket.on('getAllTags', () => {mongoose.getAllTags()
         .then(tags => socket.emit('retrieveAllTagsFromDB', tags))
-        .catch(console.log)
+        .catch(errorLogger)
     })
 
     socket.on('getImagesByUserAndTags', req => {mongoose.getImagesByUserAndTags(req.username, req.tags, req.page)
         .then(images => socket.emit('retrieveImagesFromDB', images))
-        .catch(console.log)
+        .catch(errorLogger)
     })
 
     socket.on('getFinalPage', req => mongoose.getImagesCount(req.username, req.tags)
         .then(count => socket.emit('retrieveImagesCount', count))
-        .catch(console.log)
+        .catch(errorLogger)
     );
 
     socket.on('disconnect', () => console.log('disconnect'))

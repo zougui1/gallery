@@ -11,13 +11,7 @@ app.use((req, res, next) => {
     next();
 });
 
-
-const urlStr = `/ /upload /signup /login
-/user/:username /user/:username/:page /image/:id`;
-const urlArr = urlStr.split(/\s/);
 const build = express.static(path.join(__dirname, '/../build'));
-urlArr.forEach(url => {
-    app.use(url, build);
-});
 
-//app.use('**', build);
+app.use('/', build);
+app.use('*', build);
