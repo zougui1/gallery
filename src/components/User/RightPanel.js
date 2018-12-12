@@ -5,19 +5,45 @@ import Checkbox from '@material-ui/core/Checkbox';
 import { mapDynamicState } from '../../utils';
 import { gallery } from '../../store/actions';
 import TagsInput from '../TagsInput';
+import { emit, on } from '../../socket/user';
 
 const {
   displayOverlay,
   setFilter,
+  setImages,
+  setFilteredImages,
 } = gallery;
 
-const mapStateToProps = mapDynamicState('showOverlay filteredImages getFilteredImages', 'gallery');
+const mapStateToProps = mapDynamicState({
+  gallery: 'showOverlay filteredImages getFilteredImages filter',
+  auth: 'loggedUsername',
+});
 
 const mapDispatchToProps = dispatch => ({
   displayOverlay: showOverlay => dispatch(displayOverlay(showOverlay)),
   setFilter: filter => dispatch(setFilter(filter)),
+  setImages: images => dispatch(setImages(images)),
+  setFilteredImages: images => dispatch(setFilteredImages(images)),
 });
 class RightPanel extends Component {
+  state = {
+    inputTags: [],
+  }
+
+  componentDidUpdate = (prevProps, prevState) => {
+    if(prevProps.filter !== this.props.filter) {
+      emit.getImagesByUserAndTags({
+        username: this.props.loggedUsername,
+        tags: this.props.filter,
+        page: this.props.page,
+      });
+      on.retrieveImagesFromDB(images => {
+        this.props.setImages(images);
+        this.props.setFilteredImages(images);
+      })
+    }
+  }
+  
 
   handleChange = () => {
     let { showOverlay, displayOverlay } = this.props;
@@ -34,9 +60,11 @@ class RightPanel extends Component {
   }
   
   handleTagsInputChange = tags => {
-    let tagsArrayOfString = tags.map(tag => tag.value);
+    let tagsArrayOfString = tags.map(tag => typeof tag === 'string' ? tag : tag.value);
     if(tagsArrayOfString.length === 0) tagsArrayOfString = ['everything']
     this.props.setFilter(tagsArrayOfString);
+    const inputTags = tagsArrayOfString.map(tag => tag.toLowerCase() !== 'everything' && { value: tag, label: tag });
+    this.setState({ inputTags });
   };
 
   render() {
@@ -56,7 +84,7 @@ class RightPanel extends Component {
             />
 
             <br/>
-            <TagsInput tags={this.props.filter} handleChange={handleTagsInputChange} />
+            <TagsInput tags={this.state.inputTags} handleChange={handleTagsInputChange} />
             </div>
         </div>
       </div>

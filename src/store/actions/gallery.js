@@ -1,5 +1,4 @@
 import { gallery } from '../action-type';
-import { inArray } from '../../utils';
 
 const {
     SHOW_OVERLAY_ON_IMAGES,
@@ -17,19 +16,4 @@ export const setFilter = filter => ({ type: SET_FILTER, payload: filter });
 export const setCurrentPage = currentPage => ({ type: SET_CURRENT_PAGE, payload: currentPage });
 export const setCurrentUser = currentUser => ({ type: SET_CURRENT_USER, payload: currentUser });
 
-const filter2Arrays = (arr1, arr2, returnBool) => {
-    const tempArr = arr1.filter(elm => inArray(elm, arr2));
-
-    if(returnBool) return tempArr.length === arr2.length;
-    return tempArr
-}
-
-const filterImages = state => {
-    const { images, filter } = state.galleryReducer;
-    return images.filter(image => {
-        const filteredTags = filter2Arrays(image.tags, filter);
-        return filter2Arrays(filteredTags, filter, true);
-    });
-}
-
-export const getFilteredImages = state => filterImages(state);
+export const getFilteredImages = state => state.galleryReducer.images;

@@ -6,7 +6,7 @@ import { mapDynamicState } from '../../utils/';
 const mapStateToProps = mapDynamicState('loggedUsername', 'auth');
 const ProtectedRoute = ({ component: Component, loggedUsername, ...rest }) => (
     <Route {...rest} render={props => (
-        loggedUsername || window.localStorage.getItem('username')
+        loggedUsername
             ? <Component {...props} />
             : <Redirect to='/login' />
     )} />

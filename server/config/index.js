@@ -3,7 +3,7 @@ const db = require('./db');
 const cache = require('./cache');
 const socket = require('./socket');
 const api = require('./api');
-const aws = require('./aws');
+const cloudinary = require('./cloudinary');
 require('./global');
 process.env['DEBUG'] = 'myapp:server';
 const debug = require('debug')('Gallery:config');
@@ -11,7 +11,8 @@ const configs = [
     'server',
     'db',
     'cache',
-    'socket'
+    'socket',
+    'cloudinary',
 ];
 
 module.exports = configName => {
@@ -21,8 +22,8 @@ module.exports = configName => {
         case 'cache': return cache;
         case 'socket': return socket;
         case 'api': return api;
-        case 'aws': return aws;
-    
+        case 'cloudinary': return cloudinary;
+
         default:
             console.error(`Config name error, config called: "${configName}".`.red);
             console.log('Available configs:'.cyan);

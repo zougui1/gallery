@@ -36,7 +36,7 @@ export class index extends Component {
                     {
                       loggedUsername
                       ? <Link style={{color: '#fff'}} to={`/user/${loggedUsername}`}>{loggedUsername}</Link>
-                      : <Link style={{color: '#fff'}} to={'/signup'}>Signup</Link>
+                      : <Link style={{color: '#fff'}} to={'/login'}>Login</Link>
                     }
                   </Button>
                 </div>

@@ -19,7 +19,7 @@ const {
   setCurrentPage,
 } = gallery;
 
-const mapStateToProps = mapDynamicState('showOverlay images', 'gallery');
+const mapStateToProps = mapDynamicState('showOverlay images filter', 'gallery');
 const mapDispatchToProps = dispatch => ({
   setImages: images => dispatch(setImages(images)),
   setFilteredImages: images => dispatch(setFilteredImages(images)),
@@ -32,6 +32,7 @@ export class User extends Component {
     this.state = {
       username: '',
       page: 1,
+      requestReceived: false,
     }
     const page = this.props.match.params.page;
     if(page) {
@@ -41,39 +42,47 @@ export class User extends Component {
   }
 
   componentDidMount = () => {
-      const username = this.props.match.params.username;
-      this.props.setCurrentUser(username)
-      this.setState({ username });
-      setTimeout(this.request, 0);
-  }  
+    const username = this.props.match.params.username;
+    this.props.setCurrentUser(username)
+    this.setState({ username });
+    setTimeout(this.request, 0);
+  }
 
   request = () => {
-      const req = {
-        username: this.state.username,
-        page: this.state.page,
-      };
-      console.log('request')
-      emit.retrieveImagesByUser(req);
-      on.retrieveImagesFromDB(images => {
-        this.props.setImages(images);
-      })
+    let req = {
+      username: this.state.username,
+      page: Number(this.state.page),
+      tags: this.props.filter,
+    };
+    emit.getImagesByUserAndTags(req);
+    on.retrieveImagesFromDB(images => {
+      this.setState({ requestReceived: true })
+      this.props.setImages(images);
+    })
   }
-  
+
 
   render() {
+    const { images } = this.props;
+    const { username, page, requestReceived } = this.state;
+
     return (
       <div>
         <div className="left">
           <div className="images-container">
             {
-                this.props.images.length > 0
-                ? <Images username={this.state.username} page={this.state.page} />
-                : ''
+              images.length > 0
+              ? <Images username={username} page={page} />
+              : ''
+            }
+            {
+              images.length === 0 && requestReceived
+              && <h1>There is no image</h1>
             }
           </div>
         </div>
         <div className="right">
-            <RightPanel />
+          <RightPanel page={page} />
         </div>
       </div>
     );

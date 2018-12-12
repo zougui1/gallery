@@ -10,7 +10,7 @@ const appliedMiddleware = applyMiddleware(getImageByTag, getImagesByCurrentPage)
 
 const devTools = [];
 if(window.devToolsExtension) {
-    devTools.push(window.devToolsExtension());
+    devTools.push(window.__REDUX_DEVTOOLS_EXTENSION__());
 }
 
 

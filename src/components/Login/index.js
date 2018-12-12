@@ -17,7 +17,7 @@ const {
 } = auth;
 
 const mapStateToProps = mapDynamicState('loggedUsername', 'auth');
-const mapDispatchToProps = (dispatch) => ({ 
+const mapDispatchToProps = (dispatch) => ({
   login: (username) => dispatch(login(username)),
 });
 class Signup extends React.Component {
@@ -43,7 +43,7 @@ class Signup extends React.Component {
 
     submitHandler = e => {
         e.preventDefault();
-        
+
         const validation = this.validator.validate(this.state);
         this.setState({ validation });
         this.submitted = true;
@@ -54,7 +54,7 @@ class Signup extends React.Component {
             emit.login({ username, password });
             on.logged(() => {
                 this.props.login(username);
-                localStorage.setItem('username', username);
+                //localStorage.setItem('username', username);
                 this.setState({logged: true});
             });
             on.passwordIncorrect((message) => this.setState({ errorMessage: message }));
@@ -65,7 +65,7 @@ class Signup extends React.Component {
     render() {
         let validation = this.submitted ?
                          this.validator.validate(this.state) :
-                         this.state.validation 
+                         this.state.validation
 
         return (
             <div style={{display: 'flex', justifyContent: 'center', textAlign: 'center'}}>
@@ -82,7 +82,7 @@ class Signup extends React.Component {
                         />
                     ))}
 
-                    
+
                     <Button variant="contained" color="primary" type="submit">Login</Button>
                     <br />
                     <span className="userError">{this.state.errorMessage}</span>

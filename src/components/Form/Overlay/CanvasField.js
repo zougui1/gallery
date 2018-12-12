@@ -11,7 +11,7 @@ const {
 } = uploader;
 
 const mapStateToProps = mapDynamicState('currentCanvasData imageData imagesToUpload inputs labels', 'uploader');
-const mapDispatchToProps = dispatch => ({ 
+const mapDispatchToProps = dispatch => ({
   editCanvasLabel: (label, id) => dispatch(editCanvasLabel(label, id)),
   editCanvasField: (field, id) => dispatch(editCanvasField(field, id)),
 });
@@ -21,15 +21,15 @@ class CanvasField extends React.Component {
         this.props.editCanvasLabel(document.getElementById('label-' + this.props._key), this.props._key);
     }
 
-    shouldComponentUpdate = (nextProps, nextState) => {
-        return nextProps.inputs != this.props.inputs;
+    shouldComponentUpdate = nextProps => {
+        return nextProps.inputs !== this.props.inputs;
     }
 
     onInputClick = e => {
         let { inputs } = this.props;
         let current = this.props.currentCanvasData;
         const key = Number(e.target.getAttribute('data-key'));
-        
+
         inputs.forEach(input => {
             if(input.inputKey === key) {
                 let currentLabel = input.label.current;

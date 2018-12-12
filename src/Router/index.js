@@ -9,10 +9,11 @@ import Signup from '../components/Signup';
 import Login from '../components/Login';
 import User from '../components/User';
 import Image from '../components/Image';
+import NotFound from '../components/NotFound';
 
 const Router = () => (
-    <Switch>
-        <div style={{position: 'relative', top: '10px'}}>
+    <div style={{position: 'relative', top: '10px'}}>
+        <Switch>
             <Route exact path="/" component={Home} />
             <ProtectedRoute exact path="/upload" component={Form} />
             <Route exact path="/signup" component={Signup} />
@@ -20,8 +21,9 @@ const Router = () => (
             <Route exact path="/user/:username" component={User} />
             <Route exact path="/user/:username/:page" component={User} />
             <Route exact path="/image/:id" component={Image} />
-        </div>
-    </Switch>
+            <Route exact component={NotFound} />
+        </Switch>
+    </div>
 );
 
 export default Router;

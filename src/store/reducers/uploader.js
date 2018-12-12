@@ -63,7 +63,7 @@ const uploaderReducer = (state = uploaderState, action) => {
             };
         case EDIT_CANVAS_FIELD:
             const updatedInputs = state.inputs.map(input => {
-                if (input.inputKey == action.payload.id) input = action.payload.element;
+                if (input.inputKey === action.payload.id) input = action.payload.element;
                 return input;
             })
             return {
@@ -82,7 +82,7 @@ const uploaderReducer = (state = uploaderState, action) => {
             };
         case EDIT_CANVAS_LABEL:
             const updatedLabels = state.labels.map((label, i) => {
-                if (i == action.payload.id) label.current = action.payload.element;
+                if (i === action.payload.id) label.current = action.payload.element;
                 return label;
             })
             return {
@@ -91,7 +91,7 @@ const uploaderReducer = (state = uploaderState, action) => {
             };
         case RESET_REDUCER:
             return {...uploaderState};
-    
+
         default: return { ...state };
     }
 }

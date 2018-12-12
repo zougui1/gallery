@@ -4,13 +4,12 @@ import Slider from '@material-ui/lab/Slider';
 import Checkbox from '@material-ui/core/Checkbox';
 import Button from '@material-ui/core/Button';
 import { FaEraser } from 'react-icons/fa';
-import uploadcare from 'uploadcare-widget'
 
 import swatches from '../../../data/swatches';
 import { uploader } from '../../../store/actions';
-import { mapDynamicState, b64ToBlob } from '../../../utils';
+import { mapDynamicState } from '../../../utils';
 import CanvasField from './CanvasField';
-import { emit } from '../../../socket/upload';
+import { emit, on } from '../../../socket/upload';
 import Loading from '../../Loading';
 
 import '../form.scss';
@@ -26,7 +25,7 @@ const {
 } = uploader;
 
 const mapStateToProps = mapDynamicState('currentCanvasData imageData inputs labels imagesToUpload', 'uploader');
-const mapDispatchToProps = dispatch => ({ 
+const mapDispatchToProps = dispatch => ({
   changeCurrentCanvasData: currentCanvasData => dispatch(changeCurrentCanvasData(currentCanvasData)),
   addCanvasField: field => dispatch(addCanvasField(field)),
   addCanvasLabel: label => dispatch(addCanvasLabel(label)),
@@ -50,6 +49,8 @@ class Swatches extends React.Component {
         loading: false,
         uploadCompleted: false,
         numberOfUploadCompleted: 0,
+        fail: false,
+        uploading: false,
     }
 
     componentDidUpdate = (prevProps, prevState) => {
@@ -62,15 +63,13 @@ class Swatches extends React.Component {
         else this.setState({ uploadCompleted: false });
       }
     }
-    
-    componentWillUnmount = () => {
-        console.log(this.props.state.uploaderReducer)
-      this.props.resetReducer();
-      console.log(this.props.state.uploaderReducer)
-    }
-    
 
-    updateCurrentCanvasData = () => {changeCurrentCanvasData(this.props.currentCanvasData);console.log(this.props.currentCanvasData.color)}
+    componentWillUnmount = () => {
+      this.props.resetReducer();
+    }
+
+
+    updateCurrentCanvasData = () => changeCurrentCanvasData(this.props.currentCanvasData);
 
     onColorUpdate = (e, color) => {
         const { currentCanvasData } = this.props;
@@ -82,7 +81,7 @@ class Swatches extends React.Component {
             else this.props.eraseChangeHandler(true);
         }
 
-        
+
         let newColor = currentCanvasData.color.replace(/[0-1]+([.][0-9]*)?\)$/, currentCanvasData.alpha + ')');
         currentCanvasData.color = newColor;
         this.updateCurrentCanvasData();
@@ -97,7 +96,7 @@ class Swatches extends React.Component {
         let sliderName = genericName + 'SliderValue';
 
         this.setState({ [sliderName]: value })
-        
+
         if(hasPx) value = value + 'px';
         currentCanvasData.fontSize = value;
         this.updateCurrentCanvasData();
@@ -140,9 +139,9 @@ class Swatches extends React.Component {
 
     createInput = e => {
         let { inputKey } = this.state;
-        let { inputs, canvasDatas } = this.props;
+        let { inputs } = this.props;
         let current = this.props.currentCanvasData;
-        
+
         const client = {x: 10, y: 10}
         this.props.labels[inputKey] = React.createRef();
         this.props.addCanvasLabel(this.props.labels);
@@ -168,12 +167,11 @@ class Swatches extends React.Component {
     createTextCanvas = () => {
         const { width, height } = this.props.imageData;
         const { inputs } = this.props;
-        
+
         let canvas = document.createElement('canvas');
         let context = canvas.getContext('2d');
         canvas.width = width - 300;
         canvas.height = height;
-        console.log(width, height)
 
         if(inputs.length > 0) {
             inputs.forEach(label => {
@@ -183,7 +181,7 @@ class Swatches extends React.Component {
                 let fontSize = input.style.fontSize.replace('px', '');
                 fontSize = Number(fontSize) + 3 + 'px';
                 const left = Number(style.left.replace('px', ''));
-                const top = Number(style.top.replace('px', ''));
+                const top = Number(style.top.replace('px', '')) + 12;
 
                 context.fillStyle = style.color;
                 context.font = fontSize + ' sans-serif';
@@ -194,54 +192,47 @@ class Swatches extends React.Component {
     }
 
     uploadHandler = () => {
-        const { canvas, imgRef } = this.props.canvasDatas;
+        let { imagesToUpload, addImageToUpload } = this.props;
+        const { canvas } = this.props.canvasDatas;
         const textCanvas = this.createTextCanvas();
-        this.uploader(b64ToBlob(imgRef.current.src), 'image');
-        canvas.toBlob(blob => this.uploader(blob, 'draw'));
-        this.setState({ loading: true });
+        const drawOverlay = canvas.toDataURL();
+        imagesToUpload.draw = drawOverlay;
+        addImageToUpload({ imagesToUpload });
+        this.setState({ loading: true, uploading: true });
         console.log('uploadHandler')
 
         if (textCanvas) {
-            textCanvas.toBlob(blob => this.uploader(blob, 'text'));
+            const textOverlay = textCanvas.toDataURL();
+            imagesToUpload.text = textOverlay;
+            addImageToUpload({ imagesToUpload });
         } else {
+            console.log('no text')
             this.props.changeCurrentCanvasData({
                 ...this.props.currentCanvasData,
                 hasTextCanvas: false
             });
         }
-    }
-
-    uploader = (image, type) => {
-        const fileUp = uploadcare.fileFrom('object', image);
-        console.log('uploader', fileUp)
-
-        fileUp.done(file => {
-            let { imagesToUpload, addImageToUpload } = this.props;
-            console.log('upload done')
-            
-            imagesToUpload[type] = file.uuid + '/original';
-            addImageToUpload({ imagesToUpload, });
-
-            this.setState({ numberOfUploadCompleted: this.state.numberOfUploadCompleted + 1 });
-            this.uploadToMongo()
-        });
+        this.uploadToMongo();
     }
 
     uploadToMongo = () => {
-        const { imagesToUpload, currentCanvasData } = this.props;
-        const { hasTextCanvas } = currentCanvasData
-        console.log(imagesToUpload)
-        let tempArr = [];
-        for (const key in imagesToUpload) {
-            if (imagesToUpload[key]) tempArr.push(1);
-        }
-        if((tempArr.length === 3 && hasTextCanvas) || (tempArr.length === 2 && !hasTextCanvas)) {
-            console.log('to mongo')
-            const { imageData } = this.props;
-            const imageDataWithCanvas = { ...imageData, ...imagesToUpload };
-            emit.uploadImage(imageDataWithCanvas);
-            this.setState({ uploadCompleted: true });
-        }
+        setTimeout(() => {
+            const { imagesToUpload , currentCanvasData } = this.props;
+            const { hasTextCanvas } = currentCanvasData;
+            console.log(imagesToUpload)
+
+            if(
+                (imagesToUpload.draw && !imagesToUpload.text && !hasTextCanvas) ||
+                (imagesToUpload.draw && imagesToUpload.text && hasTextCanvas)
+            ) {
+                console.log('to mongo')
+                const { imageData } = this.props;
+                const imageDataWithCanvas = { ...imageData, ...imagesToUpload };
+                emit.uploadImage(imageDataWithCanvas);
+                on.uploaded(() => this.setState({ uploadCompleted: true }));
+                on.uploadError(() => this.setState({ fail: true }));
+            }
+        }, 0);
     }
 
     render() {
@@ -263,6 +254,8 @@ class Swatches extends React.Component {
             eraseSizeSliderValue,
             loading,
             uploadCompleted,
+            fail,
+            uploading,
         } = this.state;
         const {
             handleModalOpen,
@@ -304,7 +297,7 @@ class Swatches extends React.Component {
                         max={100}
                         onChange={onSlideChange('text', true)}
                     />
-                    
+
                     {
                         this.props.currentCanvasData.contextAction === 'erase' &&
                         <div>
@@ -345,8 +338,11 @@ class Swatches extends React.Component {
                     <br/>
                     <Button style={{color: '#fff'}} onClick={resetCanvas} id="reset">Reset</Button>
                     <br/>
-                    <Button style={{color: '#fff'}} onClick={uploadHandler}>Upload</Button>
-                    <Loading redirect="/" loading={loading} completed={uploadCompleted} message="The image with the overlay has been uploaded." />
+                    {
+                        !uploading &&
+                        <Button style={{color: '#fff'}} onClick={uploadHandler}>Upload</Button>
+                    }
+                    <Loading fail={fail} redirect="/" loading={loading} completed={uploadCompleted} message="The image with the overlay has been uploaded." error="An error occurred, please try again later." />
                     <p style={{ cursor: 'pointer' }} onClick={handleModalOpen}>Need help to draw an overlay?</p>
                 </div>
             </div>

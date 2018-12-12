@@ -3,6 +3,7 @@ const {
     getImageById,
     setImage,
     getImagesByUserAndTags,
+    getImagesCount,
 } = require('./Image');
 const {
     signup,
@@ -22,6 +23,7 @@ exports.getImagesByUser = getImagesByUser;
 exports.getImageById = getImageById;
 exports.setImage = setImage;
 exports.getImagesByUserAndTags = getImagesByUserAndTags;
+exports.getImagesCount = getImagesCount;
 // Tags model request
 exports.getAllTags = getAllTags;
 exports.setTags = setTags;

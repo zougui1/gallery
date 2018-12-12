@@ -16,14 +16,14 @@ const mapDispatchToProps = dispatch => ({
     setImages: images => dispatch(setImages(images)),
 });
 
-const _GetLink = ({ number, basePath, current, setCurrentPage, setImages }) => (
+const _GetLink = ({ number, basePath, current, setCurrentPage, setImages, children }) => (
     <li className={current ? 'active waves-effect' : 'waves-effect'}>
-        <Link onClick={() => {setCurrentPage(number); setImages([])}} to={`${basePath}/${number}`}>{number}</Link>
+        <Link onClick={() => {setCurrentPage(number); setImages([])}} to={`${basePath}/${number}`}>{children | number}</Link>
     </li>
 );
 const GetLink = connect(null, mapDispatchToProps)(_GetLink);
 
-const mapStateToProps = mapDynamicState('images currentUser currentPage', 'gallery');
+const mapStateToProps = mapDynamicState('images currentUser currentPage filter', 'gallery');
 const mapDispatchToProps2 = dispatch => ({
     setImages: currentPage => dispatch(setImages(currentPage)),
 });
@@ -33,24 +33,46 @@ class Pagination extends Component {
         currentPage: 1,
         imagesPerPage: 30,
         pagesNumber: 3,
+        lastPage: 0,
     }
 
-    shouldComponentUpdate = (nextProps, nextState) => {
-        if(this.props.currentPage !== nextProps.currentPage) this.request();
-        return true;
+    componentDidMount = () => {
+      this.request();
+    }
+
+    componentDidUpdate = (prevProps, prevState) => {
+        if(prevProps.filter !== this.props.filter) {
+            this.getLastPage();
+        }
     }
 
     request = () => {
-        const { currentPage, currentUser, setImages } = this.props;
-        const req = {
+        const { currentPage, currentUser, setImages, filter } = this.props;
+        let req = {
             username: currentUser,
-            page: currentPage,
+            page: Number(currentPage),
+            tags: filter,
         };
-        emit.retrieveImagesByUser(req);
+        emit.getImagesByUserAndTags(req);
         on.retrieveImagesFromDB(images => {
-            console.log(images)
             setImages(images);
-        })
+        });
+        this.getLastPage();
+    }
+
+    getLastPage = () => {
+        const { currentPage, currentUser, filter } = this.props;
+        let req = {
+            username: currentUser,
+            page: Number(currentPage),
+            tags: filter,
+        };
+        emit.getFinalPage(req);
+        on.retrieveImagesCount(count => {
+            this.setState({
+                lastPage: Math.ceil(count / this.state.imagesPerPage)
+            });
+        });
     }
 
     getLink = number => <GetLink number={number} basePath={this.props.basePath} />;
@@ -69,18 +91,17 @@ class Pagination extends Component {
     }
 
     getNextPages = () => {
-        const { pagesNumber, imagesPerPage } = this.state;
-        const { images, currentPage, basePath } = this.props;
+        const { pagesNumber, lastPage } = this.state;
+        const { currentPage, basePath } = this.props;
         let nextPages = [];
-        for (let i = 1; i <= pagesNumber-2; i++) {
+        for (let i = 1; i <= pagesNumber; i++) {
             const newPage = Number(currentPage) + i;
-            if(imagesPerPage === images.length) {
+            if(newPage <= lastPage)
                 nextPages.push(<GetLink key={newPage} basePath={basePath} number={newPage} />)
-            }
         }
         return nextPages;
     }
-    
+
 
   render() {
     return (

@@ -7,4 +7,5 @@ else url = 'http://dorg-gallery.zougui.fr:8001';
 
 const socket = openSocket(url);
 
+
 export default socket;

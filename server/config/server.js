@@ -10,5 +10,5 @@ module.exports = {
     http,
     express,
     app,
-    port
+    port,
 };

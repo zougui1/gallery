@@ -2,7 +2,6 @@ import React from 'react';
 import { connect } from 'react-redux';
 
 import { getPosition } from '../../../utils/';
-import { emit } from '../../../socket/upload';
 import { uploader } from '../../../store/actions/';
 import { mapDynamicState } from '../../../utils';
 
@@ -17,7 +16,7 @@ const {
 } = uploader;
 
 const mapStateToProps = mapDynamicState('imageData canvasSize currentCanvasData imagesToUpload inputs', 'uploader');
-const mapDispatchToProps = dispatch => ({ 
+const mapDispatchToProps = dispatch => ({
   addImageToUpload: image => dispatch(addImageToUpload(image)),
   changeImageData: canvasSize => dispatch(changeImageData(canvasSize)),
   changeCurrentCanvasData: contextAction => dispatch(changeCurrentCanvasData(contextAction)),
@@ -47,24 +46,9 @@ class Overlay extends React.Component {
         htmlElement.addEventListener('click', this.handleModalClose);
     }
 
-    componentDidUpdate = () => {
-        const { imagesToUpload, hasTextCanvas } = this.props;
-        let tempArr = [];
-        for (const key in imagesToUpload) {
-            if (imagesToUpload[key]) {
-                tempArr.push(1);
-            }
-        }
-        if((tempArr.length === 3 && hasTextCanvas) || (tempArr.length === 2 && !hasTextCanvas)) {
-            const { imageData } = this.props;
-            const imageDataWithCanvas = {...imageData, ...imagesToUpload};
-            emit.uploadImage(imageDataWithCanvas);
-        }
-    }
-
     setSize = () => {
         const img = this.imgRef.current;
-        
+
         img.addEventListener('load', () => {
             const height = img.offsetHeight;
             const width = img.offsetWidth;
@@ -99,7 +83,7 @@ class Overlay extends React.Component {
     }
 
     setRef = ref => this.canvas = ref;
-    
+
     eraseChangeHandler = checked => {
         if(checked) this.props.changeCurrentCanvasData({
             ...this.props.currentCanvasData,
@@ -144,7 +128,7 @@ class Overlay extends React.Component {
             <div className="overlay-container">
                 <Canvas canvasDatas={canvasDatas} setRef={setRef} />
                 <img className="draw-on" ref={imgRef} src={imageData.imageTemp64} alt=""/>
-                
+
                 <Swatches
                     canvasDatas={canvasDatas}
                     overlayContainer={overlayContainer}

@@ -3,7 +3,6 @@ import { connect } from 'react-redux';
 
 import '../form.scss';
 
-import { emit } from '../../../socket/upload';
 import { mapDynamicState } from '../../../utils';
 import { uploader } from '../../../store/actions';
 
@@ -15,7 +14,7 @@ const {
 } = uploader;
 
 const mapStateToProps = mapDynamicState('currentCanvasData imageData inputs', 'uploader');
-const mapDispatchToProps = dispatch => ({ 
+const mapDispatchToProps = dispatch => ({
   changeCurrentCanvasData: contextAction => dispatch(changeCurrentCanvasData(contextAction)),
   setCanvasField: field => dispatch(setCanvasField(field)),
   editCanvasField: (field, id) => dispatch(editCanvasField(field, id)),
@@ -38,7 +37,7 @@ class Canvas extends React.Component {
         htmlElement.addEventListener('drop', this.dropHandler);
         htmlElement.addEventListener('mouseup', this.mouseUpHandler);
     }
-    
+
 
     drawLine = (x0, y0, x1, y1) => {
         const { canvasPositions } = this.props.canvasDatas;
@@ -73,7 +72,7 @@ class Canvas extends React.Component {
 
     mouseDownHandler = e => {
         const current = this.props.currentCanvasData;
-        
+
         // if you change the color the alpha isn't set, so we change again the color to set the alpha
         let newColor = current.color.replace(/[0-1]+([.][0-9]*)?\)$/, current.alpha + ')');
         current.color = newColor;
@@ -148,7 +147,7 @@ class Canvas extends React.Component {
             });
         } else {
             inputsUpdate = inputs.filter(input => {
-                if(input.inputKey !== key) return input;
+                return input.inputKey !== key;
             });
             this.props.setCanvasField(inputsUpdate);
         }

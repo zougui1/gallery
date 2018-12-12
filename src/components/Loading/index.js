@@ -16,10 +16,10 @@ export default class Loading extends React.Component {
     }
 
   render() {
-    const { color, size, thickness, message, completed, loading, redirect } = this.props;
+    const { color, size, thickness, message, completed, loading, redirect, fail, error } = this.props;
     const { canRedirect } = this.state;
-    
-    if(loading && !completed)
+
+    if(loading && !completed && !fail)
         return (
             <div>
                 <br />
@@ -31,6 +31,12 @@ export default class Loading extends React.Component {
             <p style={{ color: '#129a37' }}>
                 { message }
                 { canRedirect && <Redirect to={redirect} /> }
+            </p>
+        );
+    else if(fail)
+        return (
+            <p style={{ color: '#ea2712' }}>
+                { error }
             </p>
         );
     else return null;

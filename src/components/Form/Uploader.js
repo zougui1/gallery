@@ -1,5 +1,4 @@
 import React from 'react'
-import uploadcare from 'uploadcare-widget';
 import Button from '@material-ui/core/Button';
 import Checkbox from '@material-ui/core/Checkbox';
 import TagsInput from '../TagsInput';
@@ -24,7 +23,7 @@ const mapStateToProps = mapDynamicState({
   auth: 'loggedUsername',
 });
 
-const mapDispatchToProps = dispatch => ({ 
+const mapDispatchToProps = dispatch => ({
   changeFormView: view => dispatch(changeFormView(view)),
   changeImageData: imageData => dispatch(changeImageData(imageData)),
  });
@@ -43,6 +42,8 @@ class Uploader extends React.Component {
     tagsInputActive: false,
     uploadCompleted: false,
     loading: false,
+    file: null,
+    fail: false,
   }
 
   handleFiles = e => {
@@ -60,7 +61,7 @@ class Uploader extends React.Component {
       characterName,
       nsfw,
       tags,
-      tagsInputActive
+      tagsInputActive,
     } = this.state;
     if(!tagsInputActive && file) {
       const tagsName = tags.map(tag => tag.value);
@@ -73,7 +74,7 @@ class Uploader extends React.Component {
         tags: tagsName,
         isNsfw: nsfw,
       }
-      
+
       const newTags = tagsName.filter(tag => !inArray(tag, tagsList, 'value'));
       if(nsfw) {
         const nsfwTag = formData.tags.filter(tag => tag.toLowerCase() === 'nsfw');
@@ -81,30 +82,35 @@ class Uploader extends React.Component {
       } else formData.tags.push('SFW');
 
       if(!/https?:\/\//.test(formData.artistLink)) formData.artistLink = 'https://' + formData.artistLink;
-      
-      if(newTags.length > 0) emit.createTags(newTags);
-      if(!overlay) {
-        const fileUpload = uploadcare.fileFrom('object', file);
-        this.setState({ loading: true });
-        
-        fileUpload.done(file => {
-          emit.uploadImage({...formData, image: file.uuid + '/' + file.sourceInfo.file.name});
-          this.setState({ uploadCompleted: true });
-          console.log(file)
-        });
-        console.log(formData)
-      } else {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
 
-        reader.addEventListener('load', () => {
-          this.props.changeImageData({ 
+      if(newTags.length > 0) emit.createTags(newTags);
+      console.log(file)
+
+
+      this.setState({ loading: true });
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.addEventListener('load', () => {
+        if(!overlay) {
+
+          const imgData = {
+            ...formData,
+            withThumb: true,
+            img: file,
+            imgB64: reader.result,
+          }
+          emit.uploadImage(imgData);
+          on.uploaded(() => this.setState({ uploadCompleted: true }));
+          on.uploadError(() => this.setState({ fail: true }))
+        } else {
+
+          this.props.changeImageData({
             ...formData,
             imageTemp64: reader.result
           });
           this.props.changeFormView('Overlay');
-        });
-      }
+        }
+      })
     }
   }
 
@@ -124,7 +130,7 @@ class Uploader extends React.Component {
       [name]: !checked
     });
   }
-  
+
   handleTagsInputChange = tags => this.setState({ tags });
 
   handleTagsInputFocus = () => this.setState({ tagsInputActive: true });
@@ -132,7 +138,7 @@ class Uploader extends React.Component {
 
 
   render() {
-    const { overlayCheckbox, nsfwCheckbox, tags, overlay, nsfw, uploadCompleted, loading } = this.state;
+    const { overlayCheckbox, nsfwCheckbox, tags, overlay, nsfw, uploadCompleted, loading, fail } = this.state;
     const {
       submitHandler,
       handleCheckboxChange,
@@ -195,7 +201,7 @@ class Uploader extends React.Component {
           <br />
           <br />
           <Button color="primary" onClick={submitHandler} variant="contained" type="submit">Submit</Button>
-          <Loading redirect="/" loading={loading} completed={uploadCompleted} message="The image has been uploaded." />
+          {<Loading fail={fail} loading={loading} completed={uploadCompleted} message="The image has been uploaded." error="An error occurred, please try again later." />}
         </form>
       </div>
     );

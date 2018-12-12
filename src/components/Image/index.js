@@ -28,7 +28,7 @@ class Image extends Component {
       },
       showOverlayUpdated: false,
   }
-  
+
 
   componentDidMount = () => {
       const id = this.props.match.params.id;
@@ -40,7 +40,7 @@ class Image extends Component {
   componentDidUpdate = (prevProps, prevState) => {
     console.log(prevProps, this.props)
   }
-  
+
 
   showLayer = type => e => {
     const { overlays } = this.state;
@@ -71,7 +71,7 @@ class Image extends Component {
   renderImage = () => {
     const { image } = this.state;
     let imageElment = [];
-    if(image.image) imageElment.push(<img key={image.image} style={{position: 'absolute'}} className="image-full" src={'https://ucarecdn.com/' + image.image} alt="" />);
+    if(image.image) imageElment.push(<img key={image.image} style={{position: 'absolute'}} className="image-full" src={image.image} alt="" />);
     const overlay = this.getOverlay();
     imageElment = [
       ...imageElment,
@@ -85,7 +85,7 @@ class Image extends Component {
     let overlayElement = [];
     for (const key in image.canvas) {
       overlayElement.push(
-        <img key={image.canvas[key]} style={{position: 'absolute'}} className={`image-full overlay ${key}`} ref={this.state.overlays[key]} src={'https://ucarecdn.com/' + image.canvas[key]} alt="" />
+        <img key={image.canvas[key]} style={{position: 'absolute'}} className={`image-full overlay ${key}`} ref={this.state.overlays[key]} src={image.canvas[key]} alt="" />
       );
     }
     return overlayElement;
@@ -114,7 +114,7 @@ class Image extends Component {
     return checkboxElement;
   }
 
-  render() { 
+  render() {
     const { image } = this.state;
 
     return (
@@ -122,7 +122,7 @@ class Image extends Component {
         <div style={{ display: 'flex', justifyContent: 'center', marginTop: '70px' }}>
           {this.renderImage()}
         </div>
-        
+
         <div style={{color: 'white', marginTop: '65px'}} className="colors color-picker-panel">
           <div className="panel-row">
             <div>
