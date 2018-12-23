@@ -1,8 +1,10 @@
 const io = require('./config/')('socket');
 const mongoose = require('./mongoose/index');
 const { upload } = require('./services/cloudinary');
+global.numberOfUsers = 0;
 
 io.on('connection', socket => {
+    ++numberOfUsers;
     console.log('socket on');
 
     socket.on('uploadImage', data => {
@@ -37,7 +39,7 @@ io.on('connection', socket => {
     socket.on('signup', user => {
         mongoose.signup(user)
         .then(() => socket.emit('userCreated'))
-        .catch(() => {
+        .catch(err => {
             socket.emit('usernameAlreadyUsed', { usernameAlreadyUsed: 'This username is already used.' });
             errorLogger(err);
         });
@@ -54,13 +56,14 @@ io.on('connection', socket => {
                     ? socket.emit('logged', newUserObject)
                     : socket.emit('passwordIncorrect', 'The password is incorrect.');
             })
-        }).catch(() => {
+        }).catch(err => {
             socket.emit('userNotFound', 'User not found.');
             errorLogger(err);
         });
     })
 
-    socket.on('retrieveImagesByUser', req => { mongoose.getImagesByUser(req.username, req.page)
+    socket.on('retrieveImagesByUser', req => {
+        mongoose.getImagesByUser(req.username, req.page)
         .then(images => socket.emit('retrieveImagesFromDB', images))
         .catch(errorLogger)
     })
@@ -81,7 +84,10 @@ io.on('connection', socket => {
     })
 
     socket.on('getImagesByUserAndTags', req => {mongoose.getImagesByUserAndTags(req.username, req.tags, req.page)
-        .then(images => socket.emit('retrieveImagesFromDB', images))
+        .then(images => {
+            socket.emit('retrieveImagesFromDB', images)
+            systemLogger();
+        })
         .catch(errorLogger)
     })
 
@@ -90,5 +96,5 @@ io.on('connection', socket => {
         .catch(errorLogger)
     );
 
-    socket.on('disconnect', () => console.log('disconnect'))
+    socket.on('disconnect', () => --numberOfUsers);
 });

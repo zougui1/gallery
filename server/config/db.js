@@ -11,3 +11,4 @@ mongoose.connect(api.monngoURI, { useNewUrlParser: true })
     });
 
 mongoose.set('useFindAndModify', false);
+mongoose.set('useCreateIndex', true);

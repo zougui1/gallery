@@ -22,8 +22,9 @@ const createFile = logType => {
       if(!exists) {
         createFolder(logType, previousDir)
           .then(() => {
-            openAndWrite(file);
-            resolve();
+            openAndWrite(file)
+              .then(resolve)
+              .catch(console.log);
           })
           .catch(reject);
       } else openAndWrite(file);
@@ -31,17 +32,18 @@ const createFile = logType => {
   })
 }
 
-const openAndWrite = path => {
+const openAndWrite = path => new Promise((resolve, reject) => {
   fs.open(path, 'wx', (err, fd) => {
-    if (err) throw err;
+    if (err) reject(err);
     else {
       const formattedPath = path.replace(/\\/g, '/');
       console.log(chalk.rgb(14, 220, 65)(`The file "${formattedPath}" has been successfully created.`));
       fs.writeFile(path, defaultDataFile, 'utf-8', err => {
-        if (err) throw err;
+        if (err) reject(err);
+        else resolve();
       });
     }
   });
-}
+});
 
 exports.createFile = createFile;

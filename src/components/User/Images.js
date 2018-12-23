@@ -4,11 +4,11 @@ import { connect } from 'react-redux';
 
 import { gallery } from '../../store/actions';
 import Pagination from '../Pagination';
-import Loading from '../Loading';
 
 const {
   getFilteredImages,
   setCurrentPage,
+  setRequestReceived,
 } = gallery;
 
 const mapStateToProps = state => ({
@@ -20,9 +20,17 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({
   setCurrentPage: currentPage => dispatch(setCurrentPage(currentPage)),
+  setRequestReceived: received => dispatch(setRequestReceived(received)),
 });
 
 class Images extends Component {
+
+  componentDidMount = prevProps => {
+    const { setRequestReceived } = this.props;
+    setTimeout(() => setRequestReceived(false), 500);
+    console.log(prevProps)
+    console.log(this.props)
+  }
 
   renderOverlays = image => {
     const { showOverlay } = this.props;
@@ -47,7 +55,6 @@ class Images extends Component {
   }
 
   render() {
-    const { images } = this.props;
     const filteredImages = getFilteredImages(this.props.state);
 
     return (
@@ -61,9 +68,6 @@ class Images extends Component {
                   </Link>
               </div>
           ))}
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'center' }}>
-          <Loading loading={images.length === 0} size={60} />
         </div>
         <div className="pagination">
           <Pagination currentPage={this.props.page} basePath={`/user/${this.props.username}`} />

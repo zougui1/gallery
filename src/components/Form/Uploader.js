@@ -2,10 +2,11 @@ import React from 'react'
 import Button from '@material-ui/core/Button';
 import Checkbox from '@material-ui/core/Checkbox';
 import TagsInput from '../TagsInput';
+import mapDynamicState from 'map-dynamic-state';
 
 import { connect } from 'react-redux';
 import { uploader } from '../../store/actions';
-import { mapDynamicState, inArray } from '../../utils';
+import { inArray } from '../../utils';
 
 import { emit, on } from '../../socket/upload';
 import { fields } from '../../data/uploaderFields';
@@ -26,7 +27,7 @@ const mapStateToProps = mapDynamicState({
 const mapDispatchToProps = dispatch => ({
   changeFormView: view => dispatch(changeFormView(view)),
   changeImageData: imageData => dispatch(changeImageData(imageData)),
- });
+});
 
 class Uploader extends React.Component {
 
@@ -201,7 +202,7 @@ class Uploader extends React.Component {
           <br />
           <br />
           <Button color="primary" onClick={submitHandler} variant="contained" type="submit">Submit</Button>
-          {<Loading fail={fail} loading={loading} completed={uploadCompleted} message="The image has been uploaded." error="An error occurred, please try again later." />}
+          {<Loading redirect="/" fail={fail} loading={loading} completed={uploadCompleted} message="The image has been uploaded." error="An error occurred, please try again later." />}
         </form>
       </div>
     );

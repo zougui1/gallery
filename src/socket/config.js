@@ -5,7 +5,7 @@ let url;
 if (/localhost/.test(window.location)) url = 'http://localhost:8001';
 else url = 'http://dorg-gallery.zougui.fr:8001';
 
-const socket = openSocket(url);
+const socket = openSocket(url, {secure: true});
 
 
 export default socket;

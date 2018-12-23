@@ -1,6 +1,6 @@
 const Image = require('../models/Image');
-const User = require('../models/User');
-const mongoose = require('mongoose');
+const { clearHash } = require('../services/redis');
+require('../services/logging');
 
 const imagePerPage = 30;
 
@@ -10,25 +10,26 @@ exports.getImagesByUserAndTags = (username, tags, page) => {
         .find({ username: username, tags: {$in: tags} })
         .skip((page - 1) * imagePerPage)
         .limit(imagePerPage)
+        .log('getImagesByUserAndTags')
         .sort({_id: -1});
 }
 
 exports.getImagesCount = (username, tags) => {
     tags = tags.length > 0 ? tags : ['everything'];
-    return Image.count({ username, tags: {$all: tags} });
+    return Image.countDocuments({ username, tags: {$in: tags} });
 }
 
 exports.getImagesByUser = (username, page) => {
-    setTimeout(() => console.log(username, page, (page - 1) * imagePerPage), 1000)
     return Image
         .find({ username: username })
         .skip((page - 1) * imagePerPage)
         .limit(imagePerPage)
+        .log('getImagesByUser')
         .sort({_id:-1});
 }
 
 exports.getImageById = id => {
-    return Image.findById(id);
+    return Image.findById(id).log('getImageById').cache({ key: id });
 }
 
 exports.setImage = image => {
@@ -47,5 +48,6 @@ exports.setImage = image => {
             characterName: image.characterName,
             username: image.username,
         })
+    clearHash(image.username);
     return imageSave.save();
 }

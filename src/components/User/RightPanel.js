@@ -32,8 +32,9 @@ class RightPanel extends Component {
 
   componentDidUpdate = (prevProps, prevState) => {
     if(prevProps.filter !== this.props.filter) {
+      console.log(this.props)
       emit.getImagesByUserAndTags({
-        username: this.props.loggedUsername,
+        username: this.props.username,
         tags: this.props.filter,
         page: this.props.page,
       });
@@ -43,7 +44,7 @@ class RightPanel extends Component {
       })
     }
   }
-  
+
 
   handleChange = () => {
     let { showOverlay, displayOverlay } = this.props;
@@ -58,7 +59,7 @@ class RightPanel extends Component {
     const { value } = e.target;
     this.props.setFilter(value);
   }
-  
+
   handleTagsInputChange = tags => {
     let tagsArrayOfString = tags.map(tag => typeof tag === 'string' ? tag : tag.value);
     if(tagsArrayOfString.length === 0) tagsArrayOfString = ['everything']

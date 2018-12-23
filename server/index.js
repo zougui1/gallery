@@ -1,5 +1,5 @@
 const path = require('path');
-const { app, port, express } = require('./config/')('server');
+const { app, express } = require('./config/')('server');
 require('./logger');
 require('./socket');
 
@@ -15,3 +15,5 @@ const build = express.static(path.join(__dirname, '/../build'));
 
 app.use('/', build);
 app.use('*', build);
+
+//const event = require('e')

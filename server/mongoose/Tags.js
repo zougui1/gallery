@@ -1,8 +1,9 @@
 const Tags = require('../models/Tags');
 const { inArray } = require('../utils');
+const { clearHash } = require('../services/redis');
 
 exports.getAllTags = () => {
-    return Tags.find();
+    return Tags.find().log('getAllTags').cache();
 }
 
 exports.setTags = (tags, existingTags) => {
@@ -16,5 +17,6 @@ exports.setTags = (tags, existingTags) => {
             lastTagSave = tagSave.save();
         }
     });
+    clearHash();
     return lastTagSave;
 }

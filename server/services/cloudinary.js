@@ -62,7 +62,7 @@ const upload = {
 const optimize = file => sharp(file)
   .resize({ height: 150 })
   .webp({ quality: 50 })
-  .toBuffer()
+  .toBuffer();
 
 const tempImageStore = imageNeeded => {
   let i = 0;

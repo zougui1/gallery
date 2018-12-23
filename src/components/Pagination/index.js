@@ -9,6 +9,7 @@ import { emit, on } from '../../socket/user';
 const {
   setCurrentPage,
   setImages,
+  setRequestReceived,
 } = gallery;
 
 const mapDispatchToProps = dispatch => ({
@@ -26,6 +27,7 @@ const GetLink = connect(null, mapDispatchToProps)(_GetLink);
 const mapStateToProps = mapDynamicState('images currentUser currentPage filter', 'gallery');
 const mapDispatchToProps2 = dispatch => ({
     setImages: currentPage => dispatch(setImages(currentPage)),
+    setRequestReceived: received => dispatch(setRequestReceived(received)),
 });
 
 class Pagination extends Component {
@@ -47,7 +49,7 @@ class Pagination extends Component {
     }
 
     request = () => {
-        const { currentPage, currentUser, setImages, filter } = this.props;
+        const { currentPage, currentUser, setImages, filter, setRequestReceived } = this.props;
         let req = {
             username: currentUser,
             page: Number(currentPage),

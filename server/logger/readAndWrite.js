@@ -3,7 +3,7 @@ const chalk = require('chalk');
 const { createFile } = require('./createFile');
 
 
-const readAndWrite = (logType, data) => {
+const readAndWrite = (logType, data, additionalData = {}) => {
   const date = new Date();
   const year = date.getFullYear();
   const month = date.getMonth() + 1;
@@ -14,15 +14,19 @@ const readAndWrite = (logType, data) => {
   const formattedDate = `${day}-${month}-${year}`;
   const formattedTime = `${hour}:${min}:${sec}`;
 
-  const newData = {
+  let newData = {
     date: formattedDate,
     time: formattedTime,
+    additionalData: {
+      ...additionalData,
+    },
   };
 
   if(logType === 'error') {
-    newData.error = {};
-    newData.error.message = data.stack;
-    newData.error.code = data.code;
+    newData.error = {
+      message: data.stack,
+      code: data.code,
+    };
   } else {
     newData.data = data;
   }

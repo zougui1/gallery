@@ -1,8 +1,6 @@
 const { http, port } = require('./server');
-require('./global');
-
-
 const io = require('socket.io')(http);
-io.listen(port + 1);
+require('./global');
+io.listen(port + 1, console.log);
 
 module.exports = io;

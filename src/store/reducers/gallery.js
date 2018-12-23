@@ -7,6 +7,7 @@ const {
     SET_FILTER,
     SET_CURRENT_PAGE,
     SET_CURRENT_USER,
+    SET_REQUEST_RECEIVED,
 } = gallery;
 
 const galleryState = {
@@ -20,6 +21,7 @@ const galleryState = {
     filter: ['everything'],
     currentPage: 1,
     currentUser: '',
+    requestReceived: false,
 };
 
 const galleryReducer = (state = galleryState, action) => {
@@ -54,7 +56,12 @@ const galleryReducer = (state = galleryState, action) => {
                 ...state,
                 currentUser: action.payload
             };
-    
+        case SET_REQUEST_RECEIVED:
+            return {
+                ...state,
+                requestReceived: action.payload
+            };
+
         default: return { ...state };
     }
 

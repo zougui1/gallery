@@ -116,6 +116,11 @@ class Image extends Component {
 
   render() {
     const { image } = this.state;
+    const { username, artistLink, artistName, tags, characterName } = image;
+    if(tags) {
+      const index = tags.indexOf('everything');
+      tags.splice(index, 1);
+    }
 
     return (
       <div style={{position: 'relative'}}>
@@ -125,14 +130,21 @@ class Image extends Component {
 
         <div style={{color: 'white', marginTop: '65px'}} className="colors color-picker-panel">
           <div className="panel-row">
+            <span>Artist: <a target="blank" style={{color: 'white'}} href={this.validUrl(artistLink)}>{artistName}</a></span>
+            <br />
+            <span>Character: { characterName }</span>
+            <br/>
+            <span>Posted by: <a style={{color: 'white'}} href={`https://dorg-gallery.zougui.fr/user/${username}`}>{ username }</a></span>
+          </div>
+          <div className="panel-row">
             <div>
               {this.renderCheckbox()}
             </div>
-          </div>
-          <div className="panel-row">
-            <span>Artist: <a target="blank" style={{color: 'white'}} href={this.validUrl(image.artistLink)}>{image.artistName}</a></span>
-            <br />
-            <span>Character: {image.characterName}</span>
+            <span>Tags:</span>
+            <br/>
+            {tags && tags.map((tag, i) => (
+              <span key={tag} style={{ marginRight: '5px' }}>{ tag }{i < tags.length - 1 && ', '}</span>
+            ))}
           </div>
         </div>
         <div style={{ display: 'flex', justifyContent: 'center' }}>
