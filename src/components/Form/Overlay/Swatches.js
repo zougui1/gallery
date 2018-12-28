@@ -53,6 +53,11 @@ class Swatches extends React.Component {
         uploading: false,
     }
 
+    componentDidMount = () => {
+      console.log(this.props)
+    }
+
+
     componentDidUpdate = (prevProps, prevState) => {
       const { numberOfUploadCompleted } = this.state;
       if(prevState.numberOfUploadCompleted !== numberOfUploadCompleted) {

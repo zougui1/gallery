@@ -2,7 +2,7 @@ import React from 'react'
 import Button from '@material-ui/core/Button';
 import Checkbox from '@material-ui/core/Checkbox';
 import TagsInput from '../TagsInput';
-import mapDynamicState from 'map-dynamic-state';
+import { mapDynamicState } from 'map-dynamic-state';
 
 import { connect } from 'react-redux';
 import { uploader } from '../../store/actions';

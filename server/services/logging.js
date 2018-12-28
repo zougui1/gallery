@@ -4,7 +4,7 @@ const requestLog = new Event();
 
 mongoose.Query.prototype.log = function(callerName) {
   const modelName = this.model.modelName;
-  const query = this.getQuery();
+  const query = modelName === 'test' ? {} : this.getQuery();
   const additionalInfo = {
     modelName,
     functionName: callerName,

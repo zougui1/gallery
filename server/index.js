@@ -15,5 +15,3 @@ const build = express.static(path.join(__dirname, '/../build'));
 
 app.use('/', build);
 app.use('*', build);
-
-//const event = require('e')

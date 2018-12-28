@@ -14,6 +14,55 @@ exports.getImagesByUserAndTags = (username, tags, page) => {
         .sort({_id: -1});
 }
 
+exports.test = (tags) => {
+    const defaultTags = ['everything'];
+    tags = tags.length > 0 ? tags : defaultTags;
+    const inTags = { $in: tags };
+    return tags === defaultTags
+        ? Image
+            .find()
+            .limit(10)
+            .log('getImagesByUserAndTags')
+            .sort({_id: -1})
+        : Image
+            .find({$or: [ // $or will use one of those query that match
+                { username: inTags, tags: inTags, artistName: inTags, artistLink: inTags, characterName: inTags },
+                { username: inTags, tags: inTags, artistName: inTags, artistLink: inTags },
+                { username: inTags, tags: inTags, artistName: inTags, characterName: inTags },
+                { username: inTags, tags: inTags, artistLink: inTags, characterName: inTags },
+                { username: inTags, artistName: inTags, artistLink: inTags, characterName: inTags },
+                { tags: inTags, artistName: inTags, artistLink: inTags, characterName: inTags },
+                { username: inTags, tags: inTags, artistName: inTags },
+                { username: inTags, tags: inTags, artistLink: inTags },
+                { username: inTags, tags: inTags, characterName: inTags },
+                { username: inTags, artistName: inTags, artistLink: inTags },
+                { username: inTags, artistName: inTags, characterName: inTags },
+                { username: inTags, artistLink: inTags, characterName: inTags },
+                { tags: inTags, artistName: inTags, characterName: inTags },
+                { tags: inTags, artistName: inTags, artistLink: inTags },
+                { tags: inTags, artistLink: inTags, characterName: inTags },
+                { artistName: inTags, artistLink: inTags, characterName: inTags },
+                { username: inTags, tags: inTags },
+                { username: inTags, artistName: inTags },
+                { username: inTags, artistLink: inTags },
+                { username: inTags, characterName: inTags },
+                { tags: inTags, artistName: inTags },
+                { tags: inTags, artistLink: inTags },
+                { tags: inTags, characterName: inTags },
+                { artistName: inTags, characterName: inTags },
+                { artistName: inTags, artistLink: inTags },
+                { artistLink: inTags, characterName: inTags },
+                { username: inTags },
+                { artistName: inTags },
+                { artistLink: inTags },
+                { characterName: inTags },
+                { tags: inTags },
+            ]})
+            .limit(1)
+            .log('test')
+            .sort({_id: -1});
+}
+
 exports.getImagesCount = (username, tags) => {
     tags = tags.length > 0 ? tags : ['everything'];
     return Image.countDocuments({ username, tags: {$in: tags} });

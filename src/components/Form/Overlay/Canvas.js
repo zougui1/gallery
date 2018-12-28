@@ -25,7 +25,6 @@ class Canvas extends React.Component {
         super(props);
         this.state = {
             inputKey: 0,
-            circleSize: 10,
             lineSize: 3,
         }
     }

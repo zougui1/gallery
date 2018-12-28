@@ -6,6 +6,9 @@ global.numberOfUsers = 0;
 io.on('connection', socket => {
     ++numberOfUsers;
     console.log('socket on');
+    mongoose.test([/zougui/i])
+        .then(console.log)
+        .catch(console.log);
 
     socket.on('uploadImage', data => {
         let { img, imgB64, imageTemp64, text, draw } = data;
