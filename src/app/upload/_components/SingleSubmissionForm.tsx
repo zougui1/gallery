@@ -42,6 +42,14 @@ export const SingleSubmissionForm = () => {
     const createdAt = new Date();
     const altId = nanoid();
 
+    if (!alts.length) {
+      return creationMutation.mutate({
+        ...data,
+        createdAt,
+        alt: undefined,
+      });
+    }
+
     creationMutation.mutate([data, ...alts].map((submission) => ({
       ...submission,
       createdAt,

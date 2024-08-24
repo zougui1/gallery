@@ -59,11 +59,11 @@ export const ComicSubmissionForm = () => {
               chapterIndex: chapter.chapterIndex,
               id: seriesId,
             },
-            alt: {
+            alt: chapterPage.alts.length ? {
               id: altId,
               // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
               label: ('alt' in submission && submission.alt?.label) || 'Original',
-            },
+            } : undefined,
           };
         });
       });
