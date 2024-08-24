@@ -1,15 +1,16 @@
 import { type Metadata } from 'next';
 import LinkParser from 'react-link-parser';
-import Image from 'next/image';
 
-import { MainLayout, Paper, Separator, Typography } from '@zougui/react.ui';
+import { IconButton, MainLayout, Paper, Separator, Typography } from '@zougui/react.ui';
 
 import { api, HydrateClient } from '~/trpc/server';
 import { RelativeDate } from '~/app/_components/molecules/RelativeDate';
-import { AppLink } from '~/app/_components/atoms/AppLink';
 
 import { PostImage } from './_components/PostImage';
+import { AppLink } from '~/app/_components/atoms/AppLink';
+import { Cross, Plus, Trash2, X } from 'lucide-react';
 import { KeywordList } from './_components/KeywordList';
+import Image from 'next/image';
 
 type PostProps = {
   params: {

@@ -28,7 +28,7 @@ export const KeywordList = ({ post }: KeywordListProps) => {
   const [keywordsState, setKeywordsState] = useState<Record<string, KeywordState>>({});
 
   const changeKeywordStatus = (keyword: string, state: KeywordState): void => {
-    setKeywordsState(({ [keyword]: _changedKeywordState, ...prevKeywordsState }) => {
+    setKeywordsState(({ [keyword]: changedKeywordState, ...prevKeywordsState }) => {
       if (state.status === Status.success) {
         return prevKeywordsState;
       }
