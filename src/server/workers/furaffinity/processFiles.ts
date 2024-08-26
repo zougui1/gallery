@@ -35,7 +35,7 @@ const optimizeThumbnail = async (filePath: string): Promise<FileDownloadResult> 
       fileProcess = fileProcess.resize({ height: MAX_HEIGHT });
     }
 
-    await fileProcess.avif({ quality: 60 }).toFile(output);
+    await fileProcess.avif({ quality: 40 }).toFile(output);
 
     return {
       path: output,
