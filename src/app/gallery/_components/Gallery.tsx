@@ -1,31 +1,28 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
+import { Swiper, SwiperSlide, type SwiperRef } from 'swiper/react';
+import { Keyboard } from 'swiper/modules';
+import 'swiper/css';
 
 import { Dialog, cn } from '@zougui/react.ui';
 
 import { PostThumbnail } from '~/app/_components/organisms/PostThumbnail';
 import { type PostSchemaWithId } from '~/server/database';
-import { Loader } from 'lucide-react';
+import { useDocumentEvent } from '~/app/_hooks';
 
 export const Gallery = ({ posts }: GalleryProps) => {
   const [currentPost, setCurrentPost] = useState<PostSchemaWithId | undefined>();
+  const swiperRef = useRef<SwiperRef | null>(null);
 
-  const handleKeyDown = (event: React.KeyboardEvent) => {
-    if (!currentPost) {
-      return;
+  useDocumentEvent('fullscreenchange', () => {
+    if (!document.fullscreenElement) {
+      setCurrentPost(undefined);
     }
+  });
 
-    const postIndex = posts.findIndex(post => post._id === currentPost._id);
-
-    switch (event.key) {
-      case 'ArrowLeft':
-        setCurrentPost(posts[postIndex === 0 ? posts.length - 1 : (postIndex - 1)]);
-        break;
-      case 'ArrowRight':
-        setCurrentPost(posts[(postIndex + 1) % posts.length]);
-        break;
-    }
+  const requestFullScreen = (element: HTMLElement | null): void => {
+    element?.requestFullscreen().catch(() => null);
   }
 
   return (
@@ -53,24 +50,38 @@ export const Gallery = ({ posts }: GalleryProps) => {
                 className={cn(
                   'fixed z-50 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2',
                   'flex justify-center items-center',
-                  'max-w-[100vw] max-h-[100vh] w-full',
+                  'w-screen h-screen',
                   'focus-visible:outline-none',
                 )}
-                onKeyDown={handleKeyDown}
+                ref={requestFullScreen}
               >
                 <Dialog.Primitive.Title hidden>Full window image</Dialog.Primitive.Title>
                 <Dialog.Primitive.Description hidden>Full window image</Dialog.Primitive.Description>
 
-                <Loader className="-z-10 w-12 h-12 absolute top-50 left-50 -translate-x-1/2 -translate-y-1/2" />
-
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={`/api/media/${currentPost.file.fileName}`}
-                  alt={currentPost.keywords.join(', ')}
-                  className="max-w-[100vw] max-h-[100vh] cursor-pointer"
-                  ref={e => e?.focus()}
-                />
-
+                <Swiper
+                  loop
+                  direction="horizontal"
+                  className="w-screen h-screen"
+                  ref={swiperRef}
+                  keyboard={{ enabled: true }}
+                  modules={[Keyboard]}
+                >
+                  {posts.map(post => (
+                    <SwiperSlide key={post._id} className="w-screen h-screen flex justify-center items-center">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={`/api/media/${post.file.fileName}`}
+                        alt={post.keywords.join(', ')}
+                        className={cn(
+                          'max-w-[100vw] max-h-[100vh] cursor-pointer touch-none',
+                          'absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2',
+                          'bg-gray-800',
+                        )}
+                        ref={e => e?.focus()}
+                      />
+                    </SwiperSlide>
+                  ))}
+                </Swiper>
               </Dialog.Primitive.Content>
             </Dialog.Primitive.Close>
           </Dialog.Primitive.Portal>
