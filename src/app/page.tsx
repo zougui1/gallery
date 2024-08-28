@@ -1,4 +1,4 @@
-import { MainLayout } from '@zougui/react.ui';
+import { MainLayout, Typography } from '@zougui/react.ui';
 
 import { api, HydrateClient } from '~/trpc/server';
 
@@ -8,12 +8,8 @@ export default async function Home() {
   return (
     <HydrateClient>
       <MainLayout.Body>
-
+        <Typography.H1>Home page under construction</Typography.H1>
       </MainLayout.Body>
-
-      <MainLayout.SidePanel title="Search">
-
-      </MainLayout.SidePanel>
     </HydrateClient>
   );
 }
