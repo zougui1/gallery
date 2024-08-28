@@ -43,8 +43,13 @@ export default async function Search(props: SearchProps) {
 
           {posts.length > 0 && (
             <div className="flex flex-col gap-6 h-full">
-              <Gallery posts={posts} />
+              <SearchResult
+                hasMore={hasMore}
+                searchParams={searchParams}
+                className="md:hidden"
+              />
 
+              <Gallery posts={posts} />
               <SearchResult hasMore={hasMore} searchParams={searchParams} />
             </div>
           )}

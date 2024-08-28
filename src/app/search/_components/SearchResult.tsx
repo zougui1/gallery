@@ -1,8 +1,8 @@
-import { Typography } from '@zougui/react.ui';
+import { Typography, cn } from '@zougui/react.ui';
 
 import { ButtonLink } from '~/app/_components/atoms/ButtonLink';
 
-export const SearchResult = ({ searchParams, hasMore }: SearchResultProps) => {
+export const SearchResult = ({ searchParams, hasMore, className }: SearchResultProps) => {
   const prevParams = new URLSearchParams({
     page: String(searchParams.page - 1),
   });
@@ -16,7 +16,7 @@ export const SearchResult = ({ searchParams, hasMore }: SearchResultProps) => {
   }
 
   return (
-    <div className="flex justify-center items-center gap-4">
+    <div className={cn('flex justify-center items-center gap-4', className)}>
       <ButtonLink.Internal
         disabled={searchParams.page <= 1}
         href={`/search?${prevParams.toString()}`}
@@ -43,4 +43,6 @@ export interface SearchResultProps {
     page: number;
     keywords?: string[];
   };
+
+  className?: string;
 }
