@@ -39,7 +39,7 @@ export const ComicSubmissionForm = () => {
     },
   });
 
-  const handleSubmit = form.handleSubmit(data => {
+  const handleSubmit = form.handleSubmit(async data => {
     const now = Date.now();
     const seriesId = nanoid();
 
@@ -71,7 +71,7 @@ export const ComicSubmissionForm = () => {
       return chapterPages;
     });
 
-    creationMutation.mutate(pages);
+    await creationMutation.mutateAsync(pages);
 
     form.reset();
     setChapters([]);

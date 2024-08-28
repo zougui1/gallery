@@ -38,11 +38,11 @@ export const StorySubmissionForm = () => {
     },
   });
 
-  const handleSubmit = form.handleSubmit(data => {
+  const handleSubmit = form.handleSubmit(async data => {
     const now = Date.now();
     const seriesId = nanoid();
 
-    creationMutation.mutate(series.map((submission, index) => ({
+    await creationMutation.mutateAsync(series.map((submission, index) => ({
       ...submission,
       createdAt: new Date(now + (index * 1000)),
       series: {

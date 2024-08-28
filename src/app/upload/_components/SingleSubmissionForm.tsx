@@ -38,18 +38,18 @@ export const SingleSubmissionForm = () => {
     },
   });
 
-  const handleSubmit = form.handleSubmit(data => {
+  const handleSubmit = form.handleSubmit(async data => {
     const createdAt = new Date();
     const altId = nanoid();
 
     if (!alts.length) {
-      creationMutation.mutate({
+      await creationMutation.mutateAsync({
         ...data,
         createdAt,
         alt: undefined,
       });
     } else {
-      creationMutation.mutate([data, ...alts].map((submission) => ({
+      await creationMutation.mutateAsync([data, ...alts].map((submission) => ({
         ...submission,
         createdAt,
         alt: {
