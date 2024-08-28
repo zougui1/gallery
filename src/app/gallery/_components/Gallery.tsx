@@ -65,6 +65,7 @@ export const Gallery = ({ posts }: GalleryProps) => {
                   ref={swiperRef}
                   keyboard={{ enabled: true }}
                   modules={[Keyboard]}
+                  initialSlide={posts.findIndex(post => post._id === currentPost._id)}
                 >
                   {posts.map(post => (
                     <SwiperSlide key={post._id} className="w-screen h-screen flex justify-center items-center">
