@@ -1,7 +1,7 @@
 'use client';
 
-import { useRef, useState } from 'react';
-import { Swiper, SwiperSlide, type SwiperRef } from 'swiper/react';
+import { useEffect, useRef, useState } from 'react';
+import { Swiper, SwiperSlide, type SwiperRef, type SwiperClass } from 'swiper/react';
 import { Keyboard } from 'swiper/modules';
 import 'swiper/css';
 
@@ -14,6 +14,19 @@ import { useDocumentEvent } from '~/app/_hooks';
 export const Gallery = ({ posts }: GalleryProps) => {
   const [currentPost, setCurrentPost] = useState<PostSchemaWithId | undefined>();
   const swiperRef = useRef<SwiperRef | null>(null);
+  const galleryContainerRef = useRef<HTMLDivElement | null>(null);
+  const lastActiveIndex = useRef<number | undefined>();
+
+  useEffect(() => {
+    // if this use effect is called with no current post
+    // and a last active index
+    // that means the user has exited full screen
+    if (!currentPost && lastActiveIndex.current !== undefined) {
+      const postElements = galleryContainerRef.current?.querySelectorAll('figure');
+      const activePostElement = postElements?.[lastActiveIndex.current];
+      setTimeout(() => activePostElement?.scrollIntoView({ block: 'nearest' }), 50);
+    }
+  }, [currentPost]);
 
   useDocumentEvent('fullscreenchange', () => {
     if (!document.fullscreenElement) {
@@ -25,8 +38,19 @@ export const Gallery = ({ posts }: GalleryProps) => {
     element?.requestFullscreen().catch(() => null);
   }
 
+  const handleSlideChange = (swiper: SwiperClass) => {
+    if(!galleryContainerRef.current) {
+      return;
+    }
+
+    lastActiveIndex.current = swiper.activeIndex;
+  }
+
   return (
-    <div className="relative flex justify-center gap-4 flex-wrap md:max-h-[calc(100vh-180px)] overflow-y-auto">
+    <div
+      ref={galleryContainerRef}
+      className="relative flex justify-center gap-4 flex-wrap md:max-h-[calc(100vh-180px)] overflow-y-auto"
+    >
       <div className="w-full sticky top-0 z-50 h-1.5 shadow-inner shadow-black" />
 
       {posts.map(post => (
@@ -66,6 +90,7 @@ export const Gallery = ({ posts }: GalleryProps) => {
                   keyboard={{ enabled: true }}
                   modules={[Keyboard]}
                   initialSlide={posts.findIndex(post => post._id === currentPost._id)}
+                  onSlideChange={handleSlideChange}
                 >
                   {posts.map(post => (
                     <SwiperSlide key={post._id} className="w-screen h-screen flex justify-center items-center">
