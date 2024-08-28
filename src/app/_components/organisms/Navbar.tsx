@@ -6,7 +6,7 @@ import { NavigationMenu } from '@zougui/react.ui';
 
 const links = [
   {
-    href: '/home',
+    href: '/',
     label: 'Home',
   },
   {
