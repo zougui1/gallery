@@ -17,12 +17,12 @@ export const PostThumbnailImage = ({ selected, className, ...rest }: PostThumbna
       {...rest}
       className={cn(
         'relative border shadow-[0px_1px_4px_var(--tw-shadow-color)] rounded-lg transition-all max-w-full block',
-        'hover:brightness-90 hover:shadow-[0px_2px_6px_var(--tw-shadow-color)] hover:scale-[1.02]',
-        post.rating === PostRating.sfw && 'border-gray-600/90 shadow-gray-700 hover:shadow-gray-700',
-        post.rating === PostRating.nsfw && 'border-red-600/90 shadow-red-700 hover:shadow-red-700',
+        'lg:hover:brightness-90 lg:hover:shadow-[0px_2px_6px_var(--tw-shadow-color)] lg:hover:scale-[1.02]',
+        post.rating === PostRating.sfw && 'border-gray-600/90 shadow-gray-700 lg:hover:shadow-gray-700',
+        post.rating === PostRating.nsfw && 'border-red-600/90 shadow-red-700 lg:hover:shadow-red-700',
         selected && 'shadow-[0px_1px_6px_1px_var(--tw-shadow-color)]',
-        selected && 'hover:shadow-[0px_1px_8px_1px_var(--tw-shadow-color)]',
-        selected && 'border-2 border-purple-600/90 shadow-purple-700 hover:shadow-purple-700',
+        selected && 'lg:hover:shadow-[0px_1px_8px_1px_var(--tw-shadow-color)]',
+        selected && 'border-2 border-purple-600/90 shadow-purple-700 lg:hover:shadow-purple-700',
         rest.onClick && 'cursor-pointer',
         className,
       )}
