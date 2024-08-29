@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 
-import { cn } from '@zougui/react.ui';
+import { Checkbox, cn } from '@zougui/react.ui';
 
 import { PostRating } from '~/enums';
 
@@ -16,13 +16,10 @@ export const PostThumbnailImage = ({ selected, className, ...rest }: PostThumbna
     <div
       {...rest}
       className={cn(
-        'relative border shadow-[0px_1px_4px_var(--tw-shadow-color)] rounded-lg transition-all max-w-full block',
-        'lg:hover:brightness-90 lg:hover:shadow-[0px_2px_6px_var(--tw-shadow-color)] lg:hover:scale-[1.02]',
+        'relative border shadow-[0px_1px_4px_var(--tw-shadow-color)] rounded-md transition-all max-w-full block',
+        'lg:hover:brightness-90 lg:hover:shadow-[0px_2px_6px_var(--tw-shadow-color)]',
         post.rating === PostRating.sfw && 'border-gray-600/90 shadow-gray-700 lg:hover:shadow-gray-700',
         post.rating === PostRating.nsfw && 'border-red-600/90 shadow-red-700 lg:hover:shadow-red-700',
-        selected && 'shadow-[0px_1px_6px_1px_var(--tw-shadow-color)]',
-        selected && 'lg:hover:shadow-[0px_1px_8px_1px_var(--tw-shadow-color)]',
-        selected && 'border-2 border-purple-600/90 shadow-purple-700 lg:hover:shadow-purple-700',
         rest.onClick && 'cursor-pointer',
         className,
       )}
@@ -39,6 +36,17 @@ export const PostThumbnailImage = ({ selected, className, ...rest }: PostThumbna
       </picture>
 
       <PostContentIcon post={post} />
+
+      {selected && (
+        <Checkbox
+          checked
+          className={cn(
+            'absolute top-2 left-2',
+            'shadow-md rounded-full',
+            'border-gray-400 data-[state=checked]:bg-blue-200',
+          )}
+        />
+      )}
     </div>
   );
 }
