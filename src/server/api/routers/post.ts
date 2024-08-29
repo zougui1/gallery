@@ -116,16 +116,6 @@ export const postRouter = createTRPCRouter({
       keyword: z.string(),
     }))
     .mutation(async ({ input }) => {
-      // TODO delete
-      //? for test purposes
-      if (input.keyword === 'add_error') {
-        throw new Error('Invalid keyword');
-      }
-
-      if (input.keyword.startsWith('slow')) {
-        await new Promise(r => setTimeout(r, 5000));
-      }
-
       await DB.post.query.addKeyword(input.id, input.keyword);
     }),
 
@@ -135,16 +125,6 @@ export const postRouter = createTRPCRouter({
       keyword: z.string(),
     }))
     .mutation(async ({ input }) => {
-      // TODO delete
-      //? for test purposes
-      if (input.keyword === 'remove_error') {
-        throw new Error('Invalid keyword');
-      }
-
-      if (input.keyword.startsWith('slow')) {
-        await new Promise(r => setTimeout(r, 5000));
-      }
-
       await DB.post.query.removeKeyword(input.id, input.keyword);
     }),
 });
