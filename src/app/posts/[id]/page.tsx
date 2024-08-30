@@ -74,15 +74,17 @@ export default async function Post({ params }: PostProps) {
                         {post.author && (
                           <>
                             By{' '}
-                            <Image
-                              src="/furaffinity-favicon.ico"
-                              alt="FA"
-                              title="Furaffinity"
-                              className="inline"
-                              width={16}
-                              height={16}
-                              unoptimized
-                            />
+                            <AppLink.External href={post.sourceUrl}>
+                              <Image
+                                src="/furaffinity-favicon.ico"
+                                alt="FA"
+                                title="Furaffinity"
+                                className="inline"
+                                width={16}
+                                height={16}
+                                unoptimized
+                              />
+                            </AppLink.External>
                             {' '}
                             <AppLink.External href={post.author.url}>
                               <strong>{post.author.name}{', '}</strong>
