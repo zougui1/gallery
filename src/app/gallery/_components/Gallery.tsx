@@ -93,13 +93,13 @@ export const Gallery = ({ posts }: GalleryProps) => {
                   onSlideChange={handleSlideChange}
                 >
                   {posts.map(post => (
-                    <SwiperSlide key={post._id} className="w-screen h-screen flex justify-center items-center">
+                    <SwiperSlide key={post._id} className="w-screen h-screen flex justify-center items-center touch-pinch-zoom">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={`/api/media/${post.file.fileName}`}
                         alt={post.keywords.join(', ')}
                         className={cn(
-                          'max-w-[100vw] max-h-[100vh] cursor-pointer touch-none',
+                          'max-w-[100vw] max-h-[100vh] cursor-pointer touch-pinch-zoom',
                           'absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2',
                           'bg-gray-800',
                         )}

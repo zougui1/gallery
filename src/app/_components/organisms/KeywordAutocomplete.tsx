@@ -3,12 +3,14 @@
 import { Autocomplete, cn, type AutocompleteRootProps } from '@zougui/react.ui';
 
 import { api } from '~/trpc/react';
+import { useFixAutocompleteScroll } from '~/app/_hooks';
 
 export const KeywordAutocomplete = ({ values, excludedKeywords, className, placeholder, ...rest }: KeywordAutocompleteProps) => {
   const { data: allKeywords, isLoading } = api.post.findAllKeywords.useQuery();
   const keywordSuggestions = excludedKeywords && excludedKeywords.length > 0
     ? allKeywords?.filter(keyword => !excludedKeywords.includes(keyword))
     : allKeywords;
+  const [listRef, fixScroll] = useFixAutocompleteScroll();
 
   return (
     <Autocomplete.Root {...rest} values={values}>
@@ -17,9 +19,11 @@ export const KeywordAutocomplete = ({ values, excludedKeywords, className, place
       </Autocomplete.Trigger>
 
       <Autocomplete.Content className="w-[220px] p-0">
-        <Autocomplete.Input placeholder="Search" />
+        <Autocomplete.Input placeholder="Search" onKeyDown={fixScroll} />
 
-        <Autocomplete.List>
+        <Autocomplete.List
+          ref={listRef}
+        >
           <Autocomplete.Empty>
             {isLoading ? 'Loading...' : 'No results.'}
           </Autocomplete.Empty>
