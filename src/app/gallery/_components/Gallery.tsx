@@ -46,6 +46,10 @@ export const Gallery = ({ posts }: GalleryProps) => {
     lastActiveIndex.current = swiper.activeIndex;
   }
 
+  useEffect(() => {
+    galleryContainerRef.current?.scrollTo({ top: 0 });
+  }, [posts]);
+
   return (
     <div
       ref={galleryContainerRef}
