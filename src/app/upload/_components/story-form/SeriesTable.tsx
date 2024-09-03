@@ -7,6 +7,7 @@ import { type PartialDeep } from 'type-fest';
 import { DataTable, Dropdown, IconButton } from '@zougui/react.ui';
 
 import { type PostSeriesType } from '~/enums';
+import { renderKeywordsColumn } from '~/app/_utils';
 
 import { SeriesFormDialog } from './SeriesFormDialog';
 
@@ -49,18 +50,10 @@ const getColumns = ({
     header: 'Keywords',
     cell: ({ row }) => {
       const { keywords } = row.original;
-      const limit = 3;
-
-      if (!keywords || keywords.length <= limit) {
-        return keywords;
-      }
-
-      const summary = keywords.slice(0, limit);
-      const overflowingKeywords = keywords.slice(limit);
 
       return (
         <span title={keywords?.join(', ')}>
-          {summary.join(', ')}... +{overflowingKeywords.length}
+          {renderKeywordsColumn(keywords)}
         </span>
       );
     },

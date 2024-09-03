@@ -1,4 +1,10 @@
+import { getEnumValues } from '~/utils';
+
 export enum PostQueueStatus {
+  /**
+   * pseudo status
+   */
+  idle = 'idle',
   /**
    * fetching a submission's metadata (title, description, keywords, etc...)
    */
@@ -32,3 +38,20 @@ export enum PostQueueStatus {
    */
   deleted = 'deleted',
 }
+
+export const postQueueStatusLabelMap: Record<PostQueueStatus, string> = {
+  idle: 'idle',
+  fetchingData: 'fetching data',
+  downloadingContent: 'downloading content',
+  processing: 'processing',
+  checkingDuplicates: 'checking duplicates',
+  scanningSimilarities: 'scanning similarities',
+  complete: 'complete',
+  ignored: 'ignored',
+  restarted: 'restarted',
+  error: 'error',
+  deleting: 'deleting',
+  deleted: 'deleted',
+};
+
+export const postQueueStatusValues = getEnumValues(PostQueueStatus);

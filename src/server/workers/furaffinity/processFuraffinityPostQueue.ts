@@ -80,7 +80,7 @@ const tryStep = <Args extends unknown[], Return>(
     const [error] = res;
 
     if (error) {
-      await DB.postQueue.query.addStep(post._id, {
+      await DB.postQueue.addStep(post._id, {
         date: new Date(),
         status: PostQueueStatus.error,
         message: getErrorMessage(error, defaultErrorMessage),
@@ -100,7 +100,7 @@ export const processFuraffinityPostQueue = async (postQueue: WithId<PostQueueSch
   }
 
   if (!submission) {
-    await DB.postQueue.query.addStep(postQueue._id, {
+    await DB.postQueue.addStep(postQueue._id, {
       date: new Date(),
       status: PostQueueStatus.error,
       message: 'Submission not found',
@@ -140,7 +140,7 @@ export const processFuraffinityPostQueue = async (postQueue: WithId<PostQueueSch
     }
 
     if (duplicatePost) {
-      await DB.postQueue.query.addStep(postQueue._id, {
+      await DB.postQueue.addStep(postQueue._id, {
         date: new Date(),
         status: PostQueueStatus.ignored,
         message: `Duplicate of ${duplicatePost._id.toString()}`,
@@ -149,7 +149,7 @@ export const processFuraffinityPostQueue = async (postQueue: WithId<PostQueueSch
     }
   }
 
-  const newPost = await DB.post.query.create({
+  const newPost = await DB.post.create({
     alt: postQueue.alt,
     series: postQueue.series,
     sourceUrl: submission.url,
@@ -205,7 +205,7 @@ export const processFuraffinityPostQueue = async (postQueue: WithId<PostQueueSch
     }
   }
 
-  await DB.postQueue.query.addStep(postQueue._id, {
+  await DB.postQueue.addStep(postQueue._id, {
     date: new Date(),
     status: PostQueueStatus.complete,
   });

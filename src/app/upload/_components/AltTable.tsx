@@ -1,11 +1,14 @@
 'use client';
 
 import { type ColumnDef } from '@tanstack/react-table';
+import { MoreHorizontal, Plus } from 'lucide-react';
 
 import { DataTable, Dropdown, IconButton } from '@zougui/react.ui';
-import { MoreHorizontal, Plus } from 'lucide-react';
-import { AltFormDialog } from './AltFormDialog';
+
 import { type SubmissionUploadSchema } from '~/schemas/upload';
+import { renderKeywordsColumn } from '~/app/_utils';
+
+import { AltFormDialog } from './AltFormDialog';
 
 export interface AltData {
   _id: string;
@@ -40,18 +43,10 @@ const getColumns = ({
     header: 'Keywords',
     cell: ({ row }) => {
       const { keywords } = row.original;
-      const limit = 3;
-
-      if (!keywords || keywords.length <= limit) {
-        return keywords;
-      }
-
-      const summary = keywords.slice(0, limit);
-      const overflowingKeywords = keywords.slice(limit);
 
       return (
         <span title={keywords?.join(', ')}>
-          {summary.join(', ')}... +{overflowingKeywords.length}
+          {renderKeywordsColumn(keywords)}
         </span>
       );
     },

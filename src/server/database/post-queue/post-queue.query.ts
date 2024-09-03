@@ -3,6 +3,7 @@ import type { FlattenMaps, Types } from 'mongoose';
 import { type z } from 'zod';
 
 import { busyStatuses } from '~/server/workers';
+import { PostQueueStatus } from '~/enums';
 
 import { PostQueueModel, type PostQueue } from './post-queue.model';
 import {
@@ -26,9 +27,56 @@ export class PostQueueQuery {
     return sort(documents.map(this.deserialize), d => d.createdAt.getTime());
   }
 
-  find = async (): Promise<PostQueueSchemaWithId[]> => {
-    const documents = await PostQueueModel.find().lean();
-    return documents.map(this.deserialize)
+  search = async (options: SearchOptions): Promise<SearchResult> => {
+    const { pageSize } = options;
+    const pageIndex = Math.max(options.page - 1, 0);
+
+    let aggregate = PostQueueModel.aggregate<SearchAggregateResult>();
+
+    if (options.status) {
+      aggregate = aggregate
+        .addFields({
+          lastStatus: {
+            $last: '$steps.status',
+          },
+        })
+        .match(options.status === PostQueueStatus.idle ? {
+          $or: [
+            { lastStatus: options.status },
+            {
+              steps: { $size: 0 },
+            }
+          ],
+        } : {
+          lastStatus: options.status,
+        });
+    }
+
+    aggregate = aggregate.facet({
+      data: [
+        {
+          $sort: { _id: -1 },
+        },
+        { $skip: pageIndex * pageSize },
+        { $limit: pageSize },
+      ],
+      count: [
+        {
+          $count: 'count',
+        },
+      ],
+    });
+
+    const [result] = await aggregate;
+
+    if (!result) {
+      return { count: 0, data: [] };
+    }
+
+    return {
+      count: result.count[0].count,
+      data: result.data.map(this.deserialize),
+    };
   }
 
   findDuplicate = async ({ url }: { url: string }): Promise<PostQueueSchemaWithId | undefined> => {
@@ -94,4 +142,20 @@ export class PostQueueQuery {
       _id: document._id.toString(),
     };
   }
+}
+
+export interface SearchOptions {
+  page: number;
+  pageSize: number;
+  status?: PostQueueStatus | null;
+}
+
+export interface SearchResult {
+  count: number;
+  data: PostQueueSchemaWithId[];
+}
+
+type SearchAggregateResult = {
+  count: [{ count: number }];
+  data: LeanPostQueue[];
 }

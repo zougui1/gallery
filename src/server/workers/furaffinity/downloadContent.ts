@@ -72,7 +72,7 @@ export const downloadContent = async (
   post: WithId<PostQueueSchema>,
   submission: Submission
 ): Promise<DownloadResult> => {
-  await DB.postQueue.query.addStep(post._id, {
+  await DB.postQueue.addStep(post._id, {
     date: new Date(),
     status: PostQueueStatus.downloadingContent,
   });

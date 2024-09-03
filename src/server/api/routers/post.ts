@@ -11,8 +11,8 @@ const availablePostTypes = new Set<string>(Object.values(PostType));
 export const postRouter = createTRPCRouter({
   findAllKeywords: publicProcedure.query(async () => {
     const allKeywords = await Promise.all([
-      DB.postQueue.query.findAllKeywords(),
-      DB.post.query.findAllKeywords(),
+      DB.postQueue.findAllKeywords(),
+      DB.post.findAllKeywords(),
     ]);
 
     return unique(allKeywords.flat());
@@ -30,7 +30,7 @@ export const postRouter = createTRPCRouter({
       page: z.number().int().min(1).default(1),
     }).default({}))
     .query(async ({ input }) => {
-      return await DB.post.query.search(input);
+      return await DB.post.search(input);
     }),
 
   findById: publicProcedure
@@ -38,7 +38,7 @@ export const postRouter = createTRPCRouter({
       id: z.string(),
     }))
     .query(async ({ input }) => {
-      return await DB.post.query.findById(input.id);
+      return await DB.post.findById(input.id);
     }),
 
   findManyById: publicProcedure
@@ -46,14 +46,14 @@ export const postRouter = createTRPCRouter({
       postIds: z.array(z.string()),
     }))
     .query(async ({ input }) => {
-      const posts = await DB.post.query.findManyById(input.postIds);
+      const posts = await DB.post.findManyById(input.postIds);
 
       const altIds = posts.map(post => post.alt?.id).filter(Boolean).map(v => v!);
       const seriesIds = posts.map(post => post.series?.id).filter(Boolean).map(v => v!);
 
       const [altSubmissions, seriesSubmissions] = await Promise.all([
-        DB.post.query.findManyByAltId(unique(altIds)),
-        DB.post.query.findManyBySeriesId(unique(seriesIds)),
+        DB.post.findManyByAltId(unique(altIds)),
+        DB.post.findManyBySeriesId(unique(seriesIds)),
       ]);
 
       const altGroups = group(altSubmissions, submission => submission.alt?.id ?? '');
@@ -116,7 +116,7 @@ export const postRouter = createTRPCRouter({
       keyword: z.string(),
     }))
     .mutation(async ({ input }) => {
-      await DB.post.query.addKeyword(input.id, input.keyword);
+      await DB.post.addKeyword(input.id, input.keyword);
     }),
 
   removeKeyword: publicProcedure
@@ -125,6 +125,6 @@ export const postRouter = createTRPCRouter({
       keyword: z.string(),
     }))
     .mutation(async ({ input }) => {
-      await DB.post.query.removeKeyword(input.id, input.keyword);
+      await DB.post.removeKeyword(input.id, input.keyword);
     }),
 });

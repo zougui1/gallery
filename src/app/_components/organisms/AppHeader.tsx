@@ -4,7 +4,7 @@ import { Navbar } from './Navbar';
 
 export const AppHeader = () => {
   return (
-    <Header className="z-50">
+    <Header className="z-50 !static">
       <Navbar />
     </Header>
   );

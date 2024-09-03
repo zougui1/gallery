@@ -19,7 +19,7 @@ const checkForRestart = async (postQueue: PostQueueSchemaWithId): Promise<void> 
     return;
   }
 
-  await DB.postQueue.query.addStep(postQueue._id, {
+  await DB.postQueue.addStep(postQueue._id, {
     date: new Date(),
     status: PostQueueStatus.restarted,
     message: 'The server restarted before it could finish processing the post',
@@ -35,10 +35,10 @@ export const processPostQueue = async (post: PostQueueSchemaWithId) => {
 
   try {
     if ('url' in post) {
-      const existingPost = await DB.post.query.findBySourceUrl(post.url);
+      const existingPost = await DB.post.findBySourceUrl(post.url);
 
       if (existingPost) {
-        await DB.postQueue.query.addStep(post._id, {
+        await DB.postQueue.addStep(post._id, {
           date: new Date(),
           status: PostQueueStatus.error,
           message: 'This url already been uploaded',
@@ -56,7 +56,7 @@ export const processPostQueue = async (post: PostQueueSchemaWithId) => {
     // TODO process file upload
   } catch (error) {
     console.error(error);
-    await DB.postQueue.query.addStep(post._id, {
+    await DB.postQueue.addStep(post._id, {
       date: new Date(),
       status: PostQueueStatus.error,
       message: getErrorMessage(error, 'An unknown error has occured'),

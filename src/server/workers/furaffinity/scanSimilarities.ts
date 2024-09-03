@@ -9,7 +9,7 @@ import {
 import { PostQueueStatus } from '~/enums';
 
 const findSimilarPost = async (newPost: PostSchemaWithId): Promise<PostSchemaWithId | undefined> => {
-  const exactMatch = await DB.post.query.model.findOne({
+  const exactMatch = await DB.post.model.findOne({
     _id: {
       $ne: newPost._id,
     },
@@ -18,10 +18,10 @@ const findSimilarPost = async (newPost: PostSchemaWithId): Promise<PostSchemaWit
   }).lean();
 
   if (exactMatch) {
-    return DB.post.query.deserialize(exactMatch);
+    return DB.post.deserialize(exactMatch);
   }
 
-  const cursor = DB.post.query.model
+  const cursor = DB.post.model
     .find({
       _id: {
         $ne: newPost._id,
@@ -44,13 +44,13 @@ const findSimilarPost = async (newPost: PostSchemaWithId): Promise<PostSchemaWit
     const hashDistance = leven.get(newPost.file.hash, document.file.hash);
 
     if (hashDistance <= 6) {
-      return DB.post.query.deserialize(document);
+      return DB.post.deserialize(document);
     }
   }
 }
 
 export const scanSimilarities = async (postQueue: PostQueueSchemaWithId, post: PostSchemaWithId): Promise<void> => {
-  await DB.postQueue.query.addStep(postQueue._id, {
+  await DB.postQueue.addStep(postQueue._id, {
     date: new Date(),
     status: PostQueueStatus.scanningSimilarities,
   });
@@ -73,7 +73,7 @@ export const scanSimilarities = async (postQueue: PostQueueSchemaWithId, post: P
     documentIdsToUpdate.push(similarPost._id);
   }
 
-  await DB.post.query.model.updateMany(
+  await DB.post.model.updateMany(
     {
       _id: {
         $in: documentIdsToUpdate,

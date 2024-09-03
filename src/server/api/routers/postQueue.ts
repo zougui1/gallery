@@ -5,10 +5,11 @@ import { createTRPCRouter, publicProcedure } from '~/server/api/trpc';
 import { DB } from '~/server/database';
 import { submissionUploadSchema } from '~/schemas/upload';
 import { postTaskQueue } from '~/server/workers';
-import { PostSeriesType } from '~/enums';
+import { PostQueueStatus, PostSeriesType } from '~/enums';
+import { getEnumValues } from '~/utils';
 
 const checkDuplicate = async (url: string, message = 'This URL has already been uploaded'): Promise<void> => {
-  const duplicate = await DB.postQueue.query.findDuplicate({ url });
+  const duplicate = await DB.postQueue.findDuplicate({ url });
 
   if (duplicate) {
     throw new TRPCError({
@@ -29,7 +30,7 @@ export const postQueueRouter = createTRPCRouter({
       if (!Array.isArray(input)) {
         await checkDuplicate(input.url);
 
-        const postQueue = await DB.postQueue.query.create(input);
+        const postQueue = await DB.postQueue.create(input);
         postTaskQueue.add(postQueue);
 
         return;
@@ -69,34 +70,29 @@ export const postQueueRouter = createTRPCRouter({
           console.log(v.url);
         }
       });
-      const postQueues = await DB.postQueue.query.createMany(input);
+      const postQueues = await DB.postQueue.createMany(input);
 
       for (const postQueue of postQueues) {
         postTaskQueue.add(postQueue);
       }
     }),
 
-  createStorySeries: publicProcedure
+  search: publicProcedure
     .input(z.object({
-      name: z.string().min(1),
-      units: z.array(submissionUploadSchema.asAny),
+      page: z.number().default(1),
+      status: z.enum(getEnumValues(PostQueueStatus)).optional().nullable(),
     }))
-    .mutation(async ({ input }) => {
-      console.log(input);
-      throw new TRPCError({ code: 'NOT_IMPLEMENTED' });
-    }),
+    .query(async ({ input }) => {
+      const pageSize = 10;
 
-  createComic: publicProcedure
-    .input(z.object({
-      name: z.string().min(1),
-      units: z.array(submissionUploadSchema.asAny),
-    }))
-    .mutation(async ({ input }) => {
-      console.log(input);
-      throw new TRPCError({ code: 'NOT_IMPLEMENTED' });
-    }),
+      const result = await DB.postQueue.search({
+        ...input,
+        pageSize,
+      });
 
-  find: publicProcedure.query(async () => {
-    return await DB.postQueue.query.find();
-  }),
+      return {
+        posts: result.data,
+        lastPage: Math.ceil(result.count / pageSize),
+      };
+    }),
 });

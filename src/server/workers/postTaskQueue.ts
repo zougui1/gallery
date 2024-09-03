@@ -5,11 +5,11 @@ import { DB, type PostQueueSchemaWithId } from '../database';
 
 class PostTaskQueue extends TaskQueue<PostQueueSchemaWithId> {
   findBusy = async (): Promise<PostQueueSchemaWithId | undefined> => {
-    return await DB.postQueue.query.findOneBusy();
+    return await DB.postQueue.findOneBusy();
   }
 
   findIdle = async (): Promise<PostQueueSchemaWithId | undefined> => {
-    return await DB.postQueue.query.findOneIdle();
+    return await DB.postQueue.findOneIdle();
   }
 
   process = async (post: PostQueueSchemaWithId): Promise<void> => {
