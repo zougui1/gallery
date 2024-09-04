@@ -129,6 +129,8 @@ export const AltTable = ({ alts, onAltsChange, defaultValue }: AltTableProps) =>
         <DataTable.Header />
         <DataTable.Body />
       </DataTable.Content>
+
+      <DataTable.ClientPagination />
     </DataTable.Root>
   );
 }

@@ -62,8 +62,8 @@ export class PostQueue {
   /**
    * optional as direct uploads don't have a URL
    */
-  @prop({ type: String, required: false })
-  url?: string;
+  @prop({ type: String, required: true, index: true, unique: true })
+  url!: string;
 
   @prop({ type: String, required: false })
   attachmentUrl?: string;

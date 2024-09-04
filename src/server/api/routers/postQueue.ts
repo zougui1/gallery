@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { createTRPCRouter, publicProcedure } from '~/server/api/trpc';
 import { DB } from '~/server/database';
 import { submissionUploadSchema } from '~/schemas/upload';
-import { postTaskQueue } from '~/server/workers';
+import { postTaskQueue, restartProcessPostQueue } from '~/server/workers';
 import { PostQueueStatus, PostSeriesType } from '~/enums';
 import { getEnumValues } from '~/utils';
 
@@ -94,5 +94,22 @@ export const postQueueRouter = createTRPCRouter({
         posts: result.data,
         lastPage: Math.ceil(result.count / pageSize),
       };
+    }),
+
+  restart: publicProcedure
+    .input(z.object({
+      id: z.string().min(1),
+    }))
+    .mutation(async ({ input }) => {
+      const postQueue = await DB.postQueue.findById(input.id);
+
+      if (!postQueue) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'The post does not exist',
+        });
+      }
+
+      await restartProcessPostQueue(postQueue);
     }),
 });

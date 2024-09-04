@@ -4,3 +4,7 @@ export interface FileTypeResult {
   ext: FileExtension | 'txt';
   mime: MimeType | 'text/plain';
 }
+
+export interface ProcessPostQueueOptions {
+  updatePost?: boolean;
+}

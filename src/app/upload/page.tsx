@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 };
 
 export default async function Upload() {
-  await api.postQueue.find();
+  await api.postQueue.search({});
 
   return (
     <HydrateClient>

@@ -117,6 +117,8 @@ export const ChapterTable = ({ chapters, onChaptersChange, defaultValues }: Chap
         <DataTable.Header />
         <DataTable.Body />
       </DataTable.Content>
+
+      <DataTable.ClientPagination />
     </DataTable.Root>
   );
 }

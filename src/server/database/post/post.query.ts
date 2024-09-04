@@ -57,8 +57,24 @@ export class PostQuery {
     };
   }
 
+  updateById = async (id: string, data: PostSchema): Promise<PostSchemaWithId | undefined> => {
+    const document = await PostModel.findByIdAndUpdate(id, postSchema.parse(data));
+
+    if (document) {
+      return this.deserialize(document);
+    }
+  }
+
   findById = async (id: string): Promise<PostSchemaWithId | undefined> => {
     const document = await PostModel.findById(id).lean();
+
+    if (document) {
+      return this.deserialize(document);
+    }
+  }
+
+  findBySourceUrl = async (sourceUrl: string): Promise<PostSchemaWithId | undefined> => {
+    const document = await PostModel.findOne({ sourceUrl }).lean();
 
     if (document) {
       return this.deserialize(document);
@@ -78,14 +94,6 @@ export class PostQuery {
   findManyBySeriesId = async (seriesIds: string[]): Promise<PostSchemaWithId[]> => {
     const documents = await PostModel.find({ 'series.id': { $in: seriesIds } }).lean();
     return documents.map(this.deserialize);
-  }
-
-  findBySourceUrl = async (sourceUrl: string): Promise<PostSchemaWithId | undefined> => {
-    const document = await PostModel.findOne({ sourceUrl }).lean();
-
-    if (document) {
-      return this.deserialize(document);
-    }
   }
 
   findAllKeywords = async (): Promise<string[]> => {

@@ -9,11 +9,13 @@ import { z } from 'zod';
 import { DataTable, Dropdown, IconButton } from '@zougui/react.ui';
 
 import { AppLink } from '~/app/_components/atoms/AppLink';
-import { copyToClipboard, renderKeywordsColumn } from '~/app/_utils';
+import { copyToClipboard, formatDate, renderKeywordsColumn } from '~/app/_utils';
 import { type PostQueueSchemaWithId } from '~/server/database';
 import { api } from '~/trpc/react';
-import { PostQueueStatus, postQueueStatusLabelMap } from '~/enums';
+import { PostQueueStatus } from '~/enums';
 
+import { PostDialog } from './PostDialog';
+import { Status } from './Status';
 import { usePostsFilters } from '../_hooks';
 
 const columns: ColumnDef<PostQueueSchemaWithId>[] = [
@@ -45,9 +47,7 @@ const columns: ColumnDef<PostQueueSchemaWithId>[] = [
     accessorKey: 'createdAt',
     header: 'Date',
     cell: ({ row }) => {
-      return (
-        DateTime.fromJSDate(row.original.createdAt).toLocaleString(DateTime.DATETIME_SHORT)
-      );
+      return formatDate(row.original.createdAt, DateTime.DATETIME_SHORT);
     },
   },
   {
@@ -57,16 +57,7 @@ const columns: ColumnDef<PostQueueSchemaWithId>[] = [
       const lastStep = row.original.steps[row.original.steps.length - 1];
       const status = lastStep?.status ?? PostQueueStatus.idle;
 
-      const colors: Partial<Record<typeof status, string>> = {
-        complete: 'text-green-500',
-        error: 'text-red-500',
-      };
-
-      return (
-        <span className={colors[status]}>
-          {postQueueStatusLabelMap[status]}
-        </span>
-      );
+      return <Status status={status} />;
     },
   },
   {
@@ -84,28 +75,44 @@ const columns: ColumnDef<PostQueueSchemaWithId>[] = [
       );
     },
 
-    cell: ({ row }) => {
+    cell: function ActionCell({ row }) {
+      const post = row.original;
+      const restartMutation = api.postQueue.restart.useMutation();
+
+      const restartProcess = () => {
+        restartMutation.mutate({ id: post._id });
+      }
+
       return (
         <div className="flex justify-end">
-          <Dropdown.Root>
-            <Dropdown.Trigger asChild>
-              <IconButton>
-                <span>
-                  <span className="sr-only">Open menu</span>
-                  <MoreHorizontal className="h-4 w-4" />
-                </span>
-              </IconButton>
-            </Dropdown.Trigger>
+          <PostDialog post={post}>
+            <Dropdown.Root>
+              <Dropdown.Trigger asChild>
+                <IconButton>
+                  <span>
+                    <span className="sr-only">Open menu</span>
+                    <MoreHorizontal className="h-4 w-4" />
+                  </span>
+                </IconButton>
+              </Dropdown.Trigger>
 
-            <Dropdown.Content>
-              <Dropdown.Item
-                onClick={() => copyToClipboard(row.original._id)}
-              >
-                Copy ID
-              </Dropdown.Item>
-              <Dropdown.Item>View details</Dropdown.Item>
-            </Dropdown.Content>
-          </Dropdown.Root>
+              <Dropdown.Content>
+                <Dropdown.Item
+                  onClick={() => copyToClipboard(post._id)}
+                >
+                  Copy ID
+                </Dropdown.Item>
+
+                <PostDialog.Trigger asChild>
+                  <Dropdown.Item>View details</Dropdown.Item>
+                </PostDialog.Trigger>
+
+                <Dropdown.Item onClick={restartProcess}>
+                  Restart process
+                </Dropdown.Item>
+              </Dropdown.Content>
+            </Dropdown.Root>
+          </PostDialog>
         </div>
       );
     },

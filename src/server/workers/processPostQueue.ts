@@ -1,11 +1,12 @@
 import { FurAffinityClient } from '@zougui/furaffinity';
 
 import { PostQueueStatus } from '~/enums';
+import { getErrorMessage } from '~/utils';
 
 import { processFuraffinityPostQueue } from './furaffinity';
 import { busyStatuses } from './busyStatuses';
+import { type ProcessPostQueueOptions } from './types';
 import { DB, type PostQueueSchemaWithId } from '../database';
-import { getErrorMessage } from '~/utils';
 
 const checkForRestart = async (postQueue: PostQueueSchemaWithId): Promise<void> => {
   const lastStep = postQueue.steps[postQueue.steps.length - 1];
@@ -26,34 +27,15 @@ const checkForRestart = async (postQueue: PostQueueSchemaWithId): Promise<void> 
   });
 }
 
-export const processPostQueue = async (post: PostQueueSchemaWithId) => {
-  if ('series' in post) {
-    console.log('Process:', post.series?.chapterIndex, post.series?.partIndex)
-  }
-
+export const processPostQueue = async (post: PostQueueSchemaWithId, options?: ProcessPostQueueOptions) => {
   await checkForRestart(post);
 
   try {
-    if ('url' in post) {
-      const existingPost = await DB.post.findBySourceUrl(post.url);
-
-      if (existingPost) {
-        await DB.postQueue.addStep(post._id, {
-          date: new Date(),
-          status: PostQueueStatus.error,
-          message: 'This url already been uploaded',
-        });
-        return;
-      }
-
-      if (FurAffinityClient.URL.checkIsValidHostName(post.url)) {
-        return await processFuraffinityPostQueue(post);
-      }
-
-      // TODO process unknown URL upload
+    if (FurAffinityClient.URL.checkIsValidHostName(post.url)) {
+      return await processFuraffinityPostQueue(post, options);
     }
 
-    // TODO process file upload
+    // TODO process unknown URL upload
   } catch (error) {
     console.error(error);
     await DB.postQueue.addStep(post._id, {

@@ -9,6 +9,7 @@ import {
   PostQueueQuery,
   type PostQueueSchema,
   type PostQueueSchemaWithId,
+  type PostQueueStepSchema,
 } from './post-queue';
 import type { WithId } from './types';
 
@@ -25,4 +26,5 @@ export type {
 
   PostQueueSchema,
   PostQueueSchemaWithId,
+  PostQueueStepSchema,
 };

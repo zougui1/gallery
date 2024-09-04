@@ -22,6 +22,14 @@ export class PostQueueQuery {
     return this.deserialize(document);
   }
 
+  findById = async (id: string): Promise<PostQueueSchemaWithId | undefined> => {
+    const document = await PostQueueModel.findById(id).lean();
+
+    if (document) {
+      return this.deserialize(document);
+    }
+  }
+
   createMany = async (data: z.input<typeof postQueueSchema>[]): Promise<PostQueueSchemaWithId[]> => {
     const documents = await PostQueueModel.create(data.map(d => postQueueSchema.parse(d)));
     return sort(documents.map(this.deserialize), d => d.createdAt.getTime());

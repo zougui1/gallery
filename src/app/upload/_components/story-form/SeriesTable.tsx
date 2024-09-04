@@ -139,6 +139,8 @@ export const SeriesTable = ({ series, onSeriesChange, defaultValues }: SeriesTab
         <DataTable.Header />
         <DataTable.Body />
       </DataTable.Content>
+
+      <DataTable.ClientPagination />
     </DataTable.Root>
   );
 }

@@ -1,6 +1,7 @@
 import path from 'node:path';
 
 import { tryit } from 'radash';
+import fs from 'fs-extra';
 
 import type { Submission } from '@zougui/furaffinity';
 
@@ -11,13 +12,14 @@ import {
 } from '~/server/database';
 import { PostQueueStatus, PostRating, PostType } from '~/enums';
 import { getErrorMessage } from '~/utils';
+import { env } from '~/env';
 
 import { fetchData } from './fetchData';
 import { downloadContent } from './downloadContent';
 import { processFiles } from './processFiles';
 import { scanSimilarities } from './scanSimilarities';
 import { checkDuplicates } from './checkDuplicates';
-import { type FileTypeResult } from '../types';
+import { type FileTypeResult, type ProcessPostQueueOptions } from '../types';
 
 type TryStepResult<T> = (
   | [error: undefined, result: T]
@@ -91,7 +93,7 @@ const tryStep = <Args extends unknown[], Return>(
   }
 }
 
-export const processFuraffinityPostQueue = async (postQueue: WithId<PostQueueSchema>) => {
+export const processFuraffinityPostQueue = async (postQueue: WithId<PostQueueSchema>, options?: ProcessPostQueueOptions) => {
   const [fetchError, submission] = await tryStep(fetchData, postQueue, 'An error occured while fetching submission data')(postQueue);
 
   if (fetchError) {
@@ -128,7 +130,8 @@ export const processFuraffinityPostQueue = async (postQueue: WithId<PostQueueSch
 
   const { checksum } = result.file;
 
-  if (checksum) {
+  // check for identical checksum only if we don't want to actually update the post
+  if (checksum && !options?.updatePost) {
     const [checkError, duplicatePost] = await tryStep(checkDuplicates, postQueue, 'An error occured while checking submissions for duplicates')(
       postQueue,
       checksum,
@@ -149,7 +152,7 @@ export const processFuraffinityPostQueue = async (postQueue: WithId<PostQueueSch
     }
   }
 
-  const newPost = await DB.post.create({
+  const postData = {
     alt: postQueue.alt,
     series: postQueue.series,
     sourceUrl: submission.url,
@@ -190,7 +193,20 @@ export const processFuraffinityPostQueue = async (postQueue: WithId<PostQueueSch
     createdAt: new Date(),
 
     originalData: submission,
-  });
+  };
+
+  const existingPost = await DB.post.findBySourceUrl(postQueue.url);
+  const updatedPost = existingPost && await DB.post.updateById(existingPost._id, postData);
+  const newPost = updatedPost ?? await DB.post.create(postData);
+
+  if (existingPost) {
+    await Promise.allSettled([
+      fs.remove(path.join(env.CONTENT_DIR, existingPost.file.fileName)),
+      fs.remove(path.join(env.CONTENT_DIR, existingPost.thumbnail.original.fileName)),
+      fs.remove(path.join(env.CONTENT_DIR, existingPost.thumbnail.small.fileName)),
+      existingPost.attachment && fs.remove(path.join(env.CONTENT_DIR, existingPost.attachment.fileName)),
+    ]);
+  }
 
   // there is no scan to do if no hash
   if (newPost.file.hash) {

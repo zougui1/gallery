@@ -136,6 +136,8 @@ export const PageTable = ({ pages, onPagesChange, defaultValues }: PageTableProp
         <DataTable.Header />
         <DataTable.Body />
       </DataTable.Content>
+
+      <DataTable.ClientPagination />
     </DataTable.Root>
   );
 }
