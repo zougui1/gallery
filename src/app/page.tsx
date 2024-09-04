@@ -3,7 +3,7 @@ import { MainLayout, Typography } from '@zougui/react.ui';
 import { api, HydrateClient } from '~/trpc/server';
 
 export default async function Home() {
-  await api.postQueue.find();
+  await api.postQueue.search({});
 
   return (
     <HydrateClient>

@@ -2,8 +2,7 @@
 
 import Link from 'next/link';
 
-import { NavigationMenu, cn } from '@zougui/react.ui';
-import { AppLink } from '../atoms/AppLink';
+import { NavigationMenu } from '@zougui/react.ui';
 import React from 'react';
 
 type Link = {
@@ -54,7 +53,7 @@ const NavLinkMenu = ({ links, children }: { links: Link[]; children?: React.Reac
       <NavigationMenu.Trigger>{children}</NavigationMenu.Trigger>
 
       <NavigationMenu.Content className="absolute top-4">
-        <ul className="p-6">
+        <ul className="p-6 ">
           {links.map(link => (
             <li key={link.label}>
               <NavigationMenu.Link asChild>
