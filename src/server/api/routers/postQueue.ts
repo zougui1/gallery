@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { createTRPCRouter, publicProcedure } from '~/server/api/trpc';
 import { DB } from '~/server/database';
 import { submissionUploadSchema } from '~/schemas/upload';
-import { postTaskQueue, restartProcessPostQueue } from '~/server/workers';
+import { postTaskQueue } from '~/server/workers';
 import { PostQueueStatus, PostSeriesType } from '~/enums';
 import { getEnumValues } from '~/utils';
 
@@ -101,6 +101,11 @@ export const postQueueRouter = createTRPCRouter({
       id: z.string().min(1),
     }))
     .mutation(async ({ input }) => {
+      await DB.postQueue.addStep(input.id, {
+        date: new Date(),
+        status: PostQueueStatus.restarted,
+        message: 'The processing of the post has been manually restarted',
+      });
       const postQueue = await DB.postQueue.findById(input.id);
 
       if (!postQueue) {
@@ -110,6 +115,6 @@ export const postQueueRouter = createTRPCRouter({
         });
       }
 
-      await restartProcessPostQueue(postQueue);
+      postTaskQueue.add(postQueue);
     }),
 });

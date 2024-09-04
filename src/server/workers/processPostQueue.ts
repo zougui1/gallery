@@ -5,7 +5,6 @@ import { getErrorMessage } from '~/utils';
 
 import { processFuraffinityPostQueue } from './furaffinity';
 import { busyStatuses } from './busyStatuses';
-import { type ProcessPostQueueOptions } from './types';
 import { DB, type PostQueueSchemaWithId } from '../database';
 
 const checkForRestart = async (postQueue: PostQueueSchemaWithId): Promise<void> => {
@@ -27,12 +26,16 @@ const checkForRestart = async (postQueue: PostQueueSchemaWithId): Promise<void> 
   });
 }
 
-export const processPostQueue = async (post: PostQueueSchemaWithId, options?: ProcessPostQueueOptions) => {
+export const processPostQueue = async (post: PostQueueSchemaWithId) => {
+  const lastStatus = post.steps[post.steps.length - 1]?.status;
+
   await checkForRestart(post);
 
   try {
     if (FurAffinityClient.URL.checkIsValidHostName(post.url)) {
-      return await processFuraffinityPostQueue(post, options);
+      return await processFuraffinityPostQueue(post, {
+        updatePost: lastStatus === PostQueueStatus.restarted,
+      });
     }
 
     // TODO process unknown URL upload
