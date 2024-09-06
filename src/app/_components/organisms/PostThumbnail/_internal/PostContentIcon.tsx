@@ -1,16 +1,12 @@
 'use client';
 
-import { BookImage, FileText, FileVideo, ImagePlay, Images, type LucideProps } from 'lucide-react';
+import { Book, FileText, FileVideo, ImagePlay, Images, type LucideProps } from 'lucide-react';
 
 import { PostType } from '~/enums';
 import { ImageIcon } from '~/app/_components/atoms/ImageIcon';
 import { type PostSchemaWithId } from '~/server/database';
 
 const getIconComponent = (post: PostSchemaWithId): Icon | undefined => {
-  if (post.contentType === PostType.comic) {
-    return BookImage;
-  }
-
   if (post.contentType === PostType.animation) {
     if (post.file.contentType.startsWith('image/')) {
       return ImagePlay;
@@ -25,6 +21,10 @@ const getIconComponent = (post: PostSchemaWithId): Icon | undefined => {
 
   if (post.alt) {
     return Images;
+  }
+
+  if (post.series) {
+    return Book;
   }
 }
 
