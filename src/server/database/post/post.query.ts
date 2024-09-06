@@ -82,17 +82,20 @@ export class PostQuery {
   }
 
   findManyById = async (ids: string[]): Promise<PostSchemaWithId[]> => {
-    const documents = await PostModel.find({ _id: { $in: ids } }).lean();
+    // arbitrary limit. this will never be reached in a real usage
+    const documents = await PostModel.find({ _id: { $in: ids } }).limit(200).lean();
     return documents.map(this.deserialize);
   }
 
   findManyByAltId = async (altIds: string[]): Promise<PostSchemaWithId[]> => {
-    const documents = await PostModel.find({ 'alt.id': { $in: altIds } }).lean();
+    // arbitrary limit. this will never be reached in a real usage
+    const documents = await PostModel.find({ 'alt.id': { $in: altIds } }).limit(200).lean();
     return documents.map(this.deserialize);
   }
 
   findManyBySeriesId = async (seriesIds: string[]): Promise<PostSchemaWithId[]> => {
-    const documents = await PostModel.find({ 'series.id': { $in: seriesIds } }).lean();
+    // arbitrary limit. this will never be reached in a real usage
+    const documents = await PostModel.find({ 'series.id': { $in: seriesIds } }).limit(200).lean();
     return documents.map(this.deserialize);
   }
 
