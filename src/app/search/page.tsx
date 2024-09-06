@@ -7,7 +7,7 @@ import { PostSelector } from '~/app/_components/organisms/PostSelector';
 
 import { SearchPanel } from './_components/SearchPanel';
 import { SearchResult } from './_components/SearchResult';
-import { Gallery } from './_components/Gallery';
+import { SearchGallery } from './_components/SearchGallery';
 
 export const metadata: Metadata = {
   title: 'Search - Gallery',
@@ -49,7 +49,7 @@ export default async function Search(props: SearchProps) {
                 className="md:hidden"
               />
 
-              <Gallery posts={posts} />
+              <SearchGallery posts={posts} />
               <SearchResult hasMore={hasMore} searchParams={searchParams} />
             </div>
           )}

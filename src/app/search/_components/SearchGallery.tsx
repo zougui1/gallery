@@ -6,7 +6,7 @@ import { type PostSchemaWithId } from '~/server/database';
 
 import { SearchGalleryItem } from './SearchGalleryItem';
 
-export const Gallery = ({ posts }: GalleryProps) => {
+export const SearchGallery = ({ posts }: SearchGalleryProps) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -24,6 +24,6 @@ export const Gallery = ({ posts }: GalleryProps) => {
   );
 }
 
-export interface GalleryProps {
+export interface SearchGalleryProps {
   posts: PostSchemaWithId[];
 }
