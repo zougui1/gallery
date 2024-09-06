@@ -13,6 +13,8 @@ export const metadata: Metadata = {
 type SearchProps = {
   searchParams: {
     posts?: string;
+    alts?: string;
+    series?: string;
   };
 };
 
@@ -20,9 +22,11 @@ type SearchProps = {
 export default async function Search(props: SearchProps) {
   const searchParams = {
     postIds: props.searchParams.posts?.split(',').filter(Boolean) ?? [],
+    altIds: props.searchParams.alts?.split(',').filter(Boolean) ?? [],
+    seriesIds: props.searchParams.series?.split(',').filter(Boolean) ?? [],
   };
 
-  const posts = await api.post.findManyById(searchParams);
+  const posts = await api.post.getGallery(searchParams);
 
   return (
     <HydrateClient>

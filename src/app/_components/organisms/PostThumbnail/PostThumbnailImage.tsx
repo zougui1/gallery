@@ -2,14 +2,14 @@
 
 import Image from 'next/image';
 
-import { Checkbox, cn } from '@zougui/react.ui';
+import { cn } from '@zougui/react.ui';
 
 import { PostRating } from '~/enums';
 
 import { usePostThumbnail } from './context';
 import { PostContentIcon } from './_internal';
 
-export const PostThumbnailImage = ({ selected, className, ...rest }: PostThumbnailImageProps) => {
+export const PostThumbnailImage = ({ className, children, ...rest }: PostThumbnailImageProps) => {
   const { post } = usePostThumbnail();
 
   return (
@@ -29,7 +29,7 @@ export const PostThumbnailImage = ({ selected, className, ...rest }: PostThumbna
         <Image
           src={`/api/media/${post.thumbnail.original.fileName}`}
           alt={post.keywords.join(', ')}
-          className="w-full h-ful h-48 object-cover rounded-md"
+          className="w-full h-ful h-48 object-cover rounded-md select-none"
           width={post.thumbnail.small.width}
           height={post.thumbnail.small.height}
         />
@@ -37,20 +37,11 @@ export const PostThumbnailImage = ({ selected, className, ...rest }: PostThumbna
 
       <PostContentIcon post={post} />
 
-      {selected && (
-        <Checkbox
-          checked
-          className={cn(
-            'absolute top-2 left-2',
-            'shadow-md rounded-full',
-            'border-gray-400 data-[state=checked]:bg-blue-200',
-          )}
-        />
-      )}
+      {children}
     </div>
   );
 }
 
 export interface PostThumbnailImageProps extends React.HTMLAttributes<HTMLDivElement> {
-  selected?: boolean;
+
 }

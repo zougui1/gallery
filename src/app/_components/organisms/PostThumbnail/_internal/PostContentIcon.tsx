@@ -3,6 +3,7 @@
 import { BookImage, FileText, FileVideo, ImagePlay, Images, type LucideProps } from 'lucide-react';
 
 import { PostType } from '~/enums';
+import { ImageIcon } from '~/app/_components/atoms/ImageIcon';
 import { type PostSchemaWithId } from '~/server/database';
 
 const getIconComponent = (post: PostSchemaWithId): Icon | undefined => {
@@ -35,11 +36,13 @@ export const PostContentIcon = ({ post }: PostContentIconProps) => {
   }
 
   return (
-    <Icon
-      // prevents link from redirecting when clicking on the icon
-      onClick={e => e.preventDefault()}
-      className="w-5 h-5 absolute bottom-1.5 right-1.5 bg-black/30 rounded-md drop-shadow-md shadow-md cursor-default"
-    />
+    <ImageIcon>
+      <Icon
+        // prevents link from redirecting when clicking on the icon
+        onClick={e => e.preventDefault()}
+        className="absolute bottom-1.5 right-1.5"
+      />
+    </ImageIcon>
   )
 }
 

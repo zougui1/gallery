@@ -2,11 +2,25 @@ import { z } from 'zod';
 import { unique, group, sort } from 'radash';
 
 import { createTRPCRouter, publicProcedure } from '~/server/api/trpc';
-import { DB } from '~/server/database';
+import { DB, type PostSchemaWithId } from '~/server/database';
 import { PostRating, PostType } from '~/enums';
 
 const availablePostRatings = new Set<string>(Object.values(PostRating));
 const availablePostTypes = new Set<string>(Object.values(PostType));
+
+const sortByGroup = (posts: PostSchemaWithId[], getGroupId: (post: PostSchemaWithId) => string | number): PostSchemaWithId[] => {
+  const groups = group(posts, getGroupId);
+  const sortedPosts: PostSchemaWithId[] = [];
+
+  for (const groupPosts of Object.values(groups)) {
+    // this shouldn't happen, for type safety
+    if (groupPosts) {
+      sortedPosts.push(...sort(groupPosts, p => p.createdAt.getTime()));
+    }
+  }
+
+  return sortedPosts;
+}
 
 export const postRouter = createTRPCRouter({
   findAllKeywords: publicProcedure.query(async () => {
@@ -41,73 +55,31 @@ export const postRouter = createTRPCRouter({
       return await DB.post.findById(input.id);
     }),
 
-  findManyById: publicProcedure
+  getGallery: publicProcedure
     .input(z.object({
-      postIds: z.array(z.string()),
+      postIds: z.array(z.string()).optional(),
+      altIds: z.array(z.string()).optional(),
+      seriesIds: z.array(z.string()).optional(),
     }))
     .query(async ({ input }) => {
-      const posts = await DB.post.findManyById(input.postIds);
-
-      const altIds = posts.map(post => post.alt?.id).filter(Boolean).map(v => v!);
-      const seriesIds = posts.map(post => post.series?.id).filter(Boolean).map(v => v!);
-
-      const [altSubmissions, seriesSubmissions] = await Promise.all([
-        DB.post.findManyByAltId(unique(altIds)),
-        DB.post.findManyBySeriesId(unique(seriesIds)),
+      const [
+        posts,
+        alts,
+        series,
+      ] = await Promise.all([
+        input.postIds && DB.post.findManyById(input.postIds),
+        input.altIds && DB.post.findManyByAltId(input.altIds),
+        input.seriesIds && DB.post.findManyBySeriesId(input.seriesIds),
       ]);
 
-      const altGroups = group(altSubmissions, submission => submission.alt?.id ?? '');
-      const serieGroups = group(seriesSubmissions, submission => submission.series?.id ?? '');
+      const altGroups = sortByGroup(alts ?? [], submission => submission.alt?.id ?? '');
+      const serieGroups = sortByGroup(series ?? [], submission => submission.series?.id ?? '');
 
-      const postMap = new Map(posts.map(post => [post._id, post]));
-
-      return input.postIds
-        .flatMap(id => {
-          const post = postMap.get(id);
-
-          if (!post) {
-            return [];
-          }
-
-          if (post.series) {
-            const parts = serieGroups[post.series.id];
-
-            if (!parts) {
-              return [];
-            }
-
-            delete serieGroups[post.series.id];
-
-            return sort(parts, p => p.createdAt.getTime()).flatMap(part => {
-              if (!part.alt) {
-                return part;
-              }
-
-              const alts = altGroups[part.alt.id];
-
-              if (!alts) {
-                return [];
-              }
-
-              delete altGroups[part.alt.id];
-              return sort(alts, p => p.createdAt.getTime());
-            });
-          }
-
-          if (!post.alt) {
-            return post;
-          }
-
-          const alts = altGroups[post.alt.id];
-
-          if (!alts) {
-            return [];
-          }
-
-          delete altGroups[post.alt.id];
-          return sort(alts, p => p.createdAt.getTime());
-        })
-        .filter(Boolean);
+      return [
+        ...sort(posts ?? [], p => p.createdAt.getTime()),
+        ...altGroups,
+        ...serieGroups,
+      ];
     }),
 
   addKeyword: publicProcedure

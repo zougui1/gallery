@@ -28,7 +28,7 @@ export const SearchPanel = () => {
   const [keywords, setKeywords] = useState<string[]>(urlKeywords);
   const [ratings, setRatings] = useState<PostRating[]>(urlRatings);
   const [types, setTypes] = useState<FilterType[]>(urlTypes);
-  const { posts: selectedPosts } = PostSelector.useState();
+  const selection = PostSelector.useState();
 
   const newSearchParams = new URLSearchParams();
   // no need to add the ratings to the query string if there are none or are all present
@@ -153,9 +153,17 @@ export const SearchPanel = () => {
         <Typography.H6>Navigation</Typography.H6>
 
         <div className="space-y-4">
-          <PostSelector.Link href={`/gallery?posts=${selectedPosts.map(p => p._id).join(',')}`}>
-            Open gallery with selected posts ({selectedPosts.length})
-          </PostSelector.Link>
+          <div className="flex flex-col">
+            <PostSelector.Link
+              href={`/gallery?posts=${selection.postIds.join(',')}&alts=${selection.altIds.join(',')}&series=${selection.seriesIds.join(',')}`}
+            >
+              Open gallery with selection
+            </PostSelector.Link>
+
+            <span>posts: {selection.postIds.length}</span>
+            <span>alt groups: {selection.altIds.length}</span>
+            <span>comics/stories: {selection.seriesIds.length}</span>
+          </div>
 
           <PostSelector.Clear size="sm" />
         </div>

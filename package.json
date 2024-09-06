@@ -24,6 +24,7 @@
     "@zougui/react.ui": "^0.1.12",
     "axios": "^1.7.3",
     "blockhash-core": "^0.1.0",
+    "emittery": "^1.0.3",
     "fa.js": "^0.7.2",
     "fast-levenshtein": "^3.0.0",
     "file-type": "^19.4.1",

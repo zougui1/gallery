@@ -6,7 +6,7 @@ import { usePostSelector } from './context';
 
 export const PostSelectorClear = ({ asChild, onClick, children, ...rest }: PostSelectorClearProps) => {
   const Comp = asChild ? Slot : Button;
-  const { clearPosts } = usePostSelector();
+  const { clear: clearPosts } = usePostSelector();
 
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     onClick?.(event);
