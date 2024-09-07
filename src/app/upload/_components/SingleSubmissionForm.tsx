@@ -59,8 +59,8 @@ export const SingleSubmissionForm = () => {
       })));
     }
 
-    form.reset();
-    setAlts([]);
+    //form.reset();
+    //setAlts([]);
   });
 
   return (

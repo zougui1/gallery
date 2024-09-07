@@ -50,7 +50,7 @@ export const postQueueRouter = createTRPCRouter({
           );
         }
 
-        if ('alt' in submission) {
+        if ('alt' in submission && submission.alt) {
           errorMessageParts.push(`for the alt ${submission.alt.label}`);
         }
 

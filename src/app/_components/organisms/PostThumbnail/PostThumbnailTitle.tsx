@@ -5,7 +5,7 @@ import { Typography, cn } from '@zougui/react.ui';
 import { PostThumbnailLink } from './PostThumbnailLink';
 import { usePostThumbnail } from './context';
 
-export const PostThumbnailTitle = ({ className, ...rest }: PostThumbnailTitleProps) => {
+export const PostThumbnailTitle = ({ className, children, ...rest }: PostThumbnailTitleProps) => {
   const { post } = usePostThumbnail();
 
   return (
@@ -20,7 +20,7 @@ export const PostThumbnailTitle = ({ className, ...rest }: PostThumbnailTitlePro
         <Typography.Paragraph
           className="text-sm font-semibold text-center break-words transition-all text-blue-100 hover:text-foreground"
         >
-          {post.title}
+          {children ?? post.title}
         </Typography.Paragraph>
       </PostThumbnailLink>
     </figcaption>

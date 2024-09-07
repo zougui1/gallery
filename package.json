@@ -21,7 +21,7 @@
     "@typegoose/typegoose": "^12.6.0",
     "@zougui/common.ms": "^0.4.0",
     "@zougui/furaffinity": "^0.2.5",
-    "@zougui/react.ui": "^0.1.12",
+    "@zougui/react.ui": "^0.1.13",
     "axios": "^1.7.3",
     "blockhash-core": "^0.1.0",
     "emittery": "^1.0.3",

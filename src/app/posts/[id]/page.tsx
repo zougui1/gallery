@@ -10,6 +10,7 @@ import { KeywordList } from './_components/KeywordList';
 import { PostDescription } from '~/app/_components/molecules/PostDescription';
 import { PostAvatar } from '~/app/_components/molecules/PostAvatar';
 import { PostAuthor } from '~/app/_components/molecules/PostAuthor';
+import { PostMetaNavigation } from './_components/PostMetaNavigation';
 
 type PostProps = {
   params: {
@@ -48,6 +49,8 @@ export default async function Post({ params }: PostProps) {
                 height={'height' in post.file ? post.file.height : undefined}
                 className="mx-auto"
               />
+
+              <PostMetaNavigation post={post} />
 
               <Paper className="w-full flex flex-col gap-4">
                 <div className="flex gap-2 h-[70px]">

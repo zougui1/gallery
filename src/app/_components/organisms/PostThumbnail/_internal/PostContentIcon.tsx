@@ -19,12 +19,12 @@ const getIconComponent = (post: PostSchemaWithId): Icon | undefined => {
     return FileText;
   }
 
-  if (post.alt) {
-    return Images;
-  }
-
   if (post.series) {
     return Book;
+  }
+
+  if (post.alt) {
+    return Images;
   }
 }
 

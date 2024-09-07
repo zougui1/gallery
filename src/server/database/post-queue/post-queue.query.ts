@@ -82,7 +82,7 @@ export class PostQueueQuery {
     }
 
     return {
-      count: result.count[0].count,
+      count: result.count?.[0]?.count ?? 0,
       data: result.data.map(this.deserialize),
     };
   }

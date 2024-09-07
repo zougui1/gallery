@@ -48,6 +48,7 @@ export const submissionUploadSchema = {
   }),
   asStoryChapter: baseSubmissionUploadSchema.extend({
     series:seriesUploadSchema,
+    alt: altUploadSchema.optional(),
   }),
   asAny: baseSubmissionUploadSchema.extend({
     alt: altUploadSchema.optional(),

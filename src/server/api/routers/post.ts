@@ -55,6 +55,14 @@ export const postRouter = createTRPCRouter({
       return await DB.post.findById(input.id);
     }),
 
+  findBySeriesId: publicProcedure
+    .input(z.object({
+      id: z.string(),
+    }))
+    .query(async ({ input }) => {
+      return await DB.post.findManyBySeriesId([input.id]);
+    }),
+
   getGallery: publicProcedure
     .input(z.object({
       postIds: z.array(z.string()).optional(),
