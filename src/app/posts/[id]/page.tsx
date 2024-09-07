@@ -1,15 +1,15 @@
 import { type Metadata } from 'next';
-import LinkParser from 'react-link-parser';
-import Image from 'next/image';
 
 import { MainLayout, Paper, Separator, Typography } from '@zougui/react.ui';
 
 import { api, HydrateClient } from '~/trpc/server';
 import { RelativeDate } from '~/app/_components/molecules/RelativeDate';
-import { AppLink } from '~/app/_components/atoms/AppLink';
 
 import { PostImage } from './_components/PostImage';
 import { KeywordList } from './_components/KeywordList';
+import { PostDescription } from '~/app/_components/molecules/PostDescription';
+import { PostAvatar } from '~/app/_components/molecules/PostAvatar';
+import { PostAuthor } from '~/app/_components/molecules/PostAuthor';
 
 type PostProps = {
   params: {
@@ -53,16 +53,10 @@ export default async function Post({ params }: PostProps) {
                 <div className="flex gap-2 h-[70px]">
                   {post.author && (
                     <div>
-                      <AppLink.External href={post.author.url}>
-                        <Image
-                          src={post.author.avatar}
-                          alt="Avatar"
-                          className="w-[70px] h-[70px]"
-                          width={70}
-                          height={70}
-                          unoptimized
-                        />
-                      </AppLink.External>
+                      <PostAvatar
+                        href={post.author.url}
+                        src={post.author.avatar}
+                      />
                     </div>
                   )}
 
@@ -74,21 +68,11 @@ export default async function Post({ params }: PostProps) {
                         {post.author && (
                           <>
                             By{' '}
-                            <AppLink.External href={post.sourceUrl}>
-                              <Image
-                                src="/furaffinity-favicon.ico"
-                                alt="FA"
-                                title="Furaffinity"
-                                className="inline"
-                                width={16}
-                                height={16}
-                                unoptimized
-                              />
-                            </AppLink.External>
-                            {' '}
-                            <AppLink.External href={post.author.url}>
-                              <strong>{post.author.name}{', '}</strong>
-                            </AppLink.External>
+                            <PostAuthor
+                              sourceUrl={post.sourceUrl}
+                              authorUrl={post.author.url}
+                              name={post.author.name}
+                            />
                           </>
                         )}
 
@@ -104,20 +88,7 @@ export default async function Post({ params }: PostProps) {
                 <Separator />
 
                 <div>
-                  <LinkParser
-                    watchers={[
-                      {
-                        watchFor: "link",
-                        render: (url) => (
-                          <AppLink.External href={url}>
-                            {url}
-                          </AppLink.External>
-                        ),
-                      },
-                    ]}
-                  >
-                    {post.description}
-                  </LinkParser>
+                  <PostDescription text={post.description} />
                 </div>
               </Paper>
             </div>
