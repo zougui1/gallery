@@ -117,4 +117,12 @@ export const postQueueRouter = createTRPCRouter({
 
       postTaskQueue.add(postQueue);
     }),
+
+  findBySeriesId: publicProcedure
+    .input(z.object({
+      id: z.string(),
+    }))
+    .query(async ({ input }) => {
+      return await DB.postQueue.findBySeriesId(input.id);
+    }),
 });

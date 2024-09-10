@@ -1,9 +1,10 @@
 'use client';
 
-import { Dropdown, IconButton } from '@zougui/react.ui';
 import { ChevronDown } from 'lucide-react';
 
-export const PageDropdown = () => {
+import { Dropdown, IconButton } from '@zougui/react.ui';
+
+export const PageThumbnailDropdown = () => {
   return (
     <Dropdown.Root>
       <Dropdown.Trigger asChild>
@@ -13,7 +14,7 @@ export const PageDropdown = () => {
       </Dropdown.Trigger>
 
       <Dropdown.Content>
-        <Dropdown.Item>Add alt</Dropdown.Item>
+        <Dropdown.Item>Add alts</Dropdown.Item>
       </Dropdown.Content>
     </Dropdown.Root>
   );

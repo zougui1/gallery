@@ -144,6 +144,11 @@ export class PostQueueQuery {
     return postQueue;
   }
 
+  findBySeriesId = async (id: string): Promise<PostQueueSchemaWithId[]> => {
+    const documents = await PostQueueModel.find({ 'series.id': id }).lean();
+    return documents.map(this.deserialize);
+  }
+
   private deserialize = (document: LeanPostQueue): PostQueueSchemaWithId => {
     return {
       ...postQueueSchema.parse(document),

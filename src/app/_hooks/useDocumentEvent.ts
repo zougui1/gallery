@@ -1,3 +1,5 @@
+'use client';
+
 import { useEffect, useRef } from 'react'
 
 export const useDocumentEvent = <T extends keyof DocumentEventMap>(type: T, listener: (event: DocumentEventMap[T]) => void): void => {

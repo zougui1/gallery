@@ -6,17 +6,17 @@ import { DateTime } from 'luxon';
 import { useQueryState } from 'nuqs';
 import { z } from 'zod';
 
-import { DataTable, Dropdown, IconButton } from '@zougui/react.ui';
+import { DataTable, IconButton } from '@zougui/react.ui';
 
 import { AppLink } from '~/app/_components/atoms/AppLink';
-import { copyToClipboard, formatDate, renderKeywordsColumn } from '~/app/_utils';
+import { formatDate, renderKeywordsColumn } from '~/app/_utils';
 import { type PostQueueSchemaWithId } from '~/server/database';
 import { api } from '~/trpc/react';
 import { PostQueueStatus } from '~/enums';
 
-import { PostDialog } from './PostDialog';
 import { Status } from './Status';
 import { usePostsFilters } from '../_hooks';
+import { PostQueueDropdown } from './PostQueueDropdown';
 
 const columns: ColumnDef<PostQueueSchemaWithId>[] = [
   {
@@ -77,42 +77,17 @@ const columns: ColumnDef<PostQueueSchemaWithId>[] = [
 
     cell: function ActionCell({ row }) {
       const post = row.original;
-      const restartMutation = api.postQueue.restart.useMutation();
-
-      const restartProcess = () => {
-        restartMutation.mutate({ id: post._id });
-      }
 
       return (
         <div className="flex justify-end">
-          <PostDialog post={post}>
-            <Dropdown.Root>
-              <Dropdown.Trigger asChild>
-                <IconButton>
-                  <span>
-                    <span className="sr-only">Open menu</span>
-                    <MoreHorizontal className="h-4 w-4" />
-                  </span>
-                </IconButton>
-              </Dropdown.Trigger>
-
-              <Dropdown.Content>
-                <Dropdown.Item
-                  onClick={() => copyToClipboard(post._id)}
-                >
-                  Copy ID
-                </Dropdown.Item>
-
-                <PostDialog.Trigger asChild>
-                  <Dropdown.Item>View details</Dropdown.Item>
-                </PostDialog.Trigger>
-
-                <Dropdown.Item onClick={restartProcess}>
-                  Restart process
-                </Dropdown.Item>
-              </Dropdown.Content>
-            </Dropdown.Root>
-          </PostDialog>
+          <PostQueueDropdown post={post}>
+            <IconButton>
+              <span>
+                <span className="sr-only">Open menu</span>
+                <MoreHorizontal className="h-4 w-4" />
+              </span>
+            </IconButton>
+          </PostQueueDropdown>
         </div>
       );
     },

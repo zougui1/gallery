@@ -1,5 +1,8 @@
+'use client';
+
 import { z } from 'zod';
 import { nanoid } from 'nanoid';
+import { useState } from 'react';
 import { type PartialDeep } from 'type-fest';
 
 import { Button, Dialog, Form, Typography } from '@zougui/react.ui';
@@ -20,6 +23,7 @@ export const pageSchema = submissionUploadSchema.asAny.extend({
 }).omit({ createdAt: true });
 
 export const PageFormDialog = ({ children, onSubmit, defaultValues }: PageFormDialogProps) => {
+  const [open, setOpen] = useState(false);
   const form = useAppForm({
     schema: pageSchema,
     defaultValues: {
@@ -40,11 +44,14 @@ export const PageFormDialog = ({ children, onSubmit, defaultValues }: PageFormDi
     },
   });
 
-  const handleSubmit = form.handleSubmit(onSubmit);
+  const handleSubmit = form.handleSubmit(data => {
+    onSubmit(data);
+    setOpen(false);
+  });
   const [keywords] = api.post.findAllKeywords.useSuspenseQuery();
 
   return (
-    <Dialog.Root>
+    <Dialog.Root open={open} onOpenChange={setOpen}>
       {children}
 
       <Dialog.Content className="max-w-4xl">

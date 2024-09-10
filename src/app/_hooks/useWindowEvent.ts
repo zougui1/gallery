@@ -1,3 +1,5 @@
+'use client';
+
 import { useEffect, useRef } from 'react'
 
 export const useWindowEvent = <T extends keyof WindowEventMap>(type: T, listener: (event: WindowEventMap[T]) => void): void => {
