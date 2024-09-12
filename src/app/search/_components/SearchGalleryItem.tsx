@@ -1,16 +1,28 @@
 'use client';
 
 import { Checkbox, cn } from '@zougui/react.ui';
-import { Infinity } from 'lucide-react';
+import { Book, BookText, Images, type LucideIcon } from 'lucide-react';
 
 import { ImageIcon } from '~/app/_components/atoms/ImageIcon';
 import { PostSelector } from '~/app/_components/organisms/PostSelector';
 import { PostThumbnail } from '~/app/_components/organisms/PostThumbnail';
+import { PostType } from '~/enums';
 import { type PostSchemaWithId } from '~/server/database';
+
+const getIcon = (post: PostSchemaWithId): LucideIcon | undefined => {
+  if (post.series) {
+    return post.contentType === PostType.story ? BookText : Book;
+  }
+
+  if (post.alt) {
+    return Images;
+  }
+}
 
 export const SearchGalleryItem = ({ post }: SearchGalleryItemProps) => {
   const { getSelectionType } = PostSelector.useState();
   const selectionType = getSelectionType(post);
+  const Icon = getIcon(post);
 
   return (
     <PostThumbnail.Root post={post}>
@@ -26,9 +38,9 @@ export const SearchGalleryItem = ({ post }: SearchGalleryItemProps) => {
                 )}
               />
 
-              {selectionType !== 'post' && (
+              {Icon && selectionType !== 'post' && (
                 <ImageIcon>
-                  <Infinity className="shadow-md w-5 h-5" />
+                  <Icon className="shadow-md w-5 h-5" />
                 </ImageIcon>
               )}
             </div>

@@ -1,12 +1,12 @@
 'use client';
 
-import { Book, FileText, FileVideo, ImagePlay, Images, type LucideProps } from 'lucide-react';
+import { Book, BookText, FileText, FileVideo, ImagePlay, Images, type LucideIcon } from 'lucide-react';
 
 import { PostType } from '~/enums';
 import { ImageIcon } from '~/app/_components/atoms/ImageIcon';
 import { type PostSchemaWithId } from '~/server/database';
 
-const getIconComponent = (post: PostSchemaWithId): Icon | undefined => {
+const getIconComponent = (post: PostSchemaWithId): LucideIcon | undefined => {
   if (post.contentType === PostType.animation) {
     if (post.file.contentType.startsWith('image/')) {
       return ImagePlay;
@@ -15,12 +15,14 @@ const getIconComponent = (post: PostSchemaWithId): Icon | undefined => {
     return FileVideo;
   }
 
-  if (post.contentType === PostType.story) {
-    return FileText;
-  }
+  const isStory = post.contentType === PostType.story;
 
   if (post.series) {
-    return Book;
+    return isStory ? BookText : Book;
+  }
+
+  if (isStory) {
+    return FileText;
   }
 
   if (post.alt) {
@@ -49,8 +51,3 @@ export const PostContentIcon = ({ post }: PostContentIconProps) => {
 export interface PostContentIconProps {
   post: PostSchemaWithId;
 }
-
-type Icon = (
-  & React.ForwardRefExoticComponent<Omit<LucideProps, 'ref'>
-  & React.RefAttributes<SVGSVGElement>>
-);
