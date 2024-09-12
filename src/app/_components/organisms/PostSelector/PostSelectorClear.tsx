@@ -12,7 +12,6 @@ export const PostSelectorClear = ({ asChild, onClick, children, ...rest }: PostS
     onClick?.(event);
 
     if (!event.defaultPrevented) {
-      console.log('clear')
       clearPosts();
     }
   }
@@ -22,7 +21,7 @@ export const PostSelectorClear = ({ asChild, onClick, children, ...rest }: PostS
       {...rest}
       onClick={handleClick}
     >
-      {children ?? 'Clear posts'}
+      {children ?? 'Clear selection'}
     </Comp>
   );
 }
