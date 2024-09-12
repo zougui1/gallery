@@ -14,6 +14,8 @@ import { PostQueueStatus, PostSeriesType } from '~/enums';
 import { nanoid } from 'nanoid';
 import { Status } from '~/app/dashboard/posts/_components/Status';
 import { PostQueueDropdown } from '~/app/dashboard/posts/_components/PostQueueDropdown';
+import { PageFormDialog } from '~/app/upload/_components/comic-form/PageFormDialog';
+import { ChapterFormDialog, ChapterFormDialogProps } from '~/app/upload/_components/comic-form/ChapterFormDialog';
 
 type Chapter = {
   name?: string;
@@ -53,6 +55,7 @@ export const Comic = ({ seriesId }: ComicProps) => {
   const [posts] = api.post.findBySeriesId.useSuspenseQuery({ id: seriesId });
   const [postQueues] = api.postQueue.findBySeriesId.useSuspenseQuery({ id: seriesId });
 
+  const seriesName = posts[0]?.series?.name ?? 'Untitled';
   const chapters: Chapter[] = [];
   const postByChapter = group(postQueues, p => p.series?.chapterIndex ?? 0);
 
@@ -107,6 +110,36 @@ export const Comic = ({ seriesId }: ComicProps) => {
         };
       }));
     }
+  }
+
+  const createChapter: ChapterFormDialogProps['onSubmit'] = (chapter) => {
+    const now = Date.now();
+
+    const pages = chapter.pages.flatMap(chapterPage => {
+      const altId = nanoid();
+
+      return [chapterPage, ...chapterPage.alts].map((submission, index) => {
+        return {
+          ...submission,
+          createdAt: new Date(now + (chapter.chapterIndex * 1000) + (chapterPage.series.partIndex * 10) + index),
+          series: {
+            ...chapterPage.series,
+            type: PostSeriesType.comic,
+            name: seriesName,
+            chapterName: chapter.title,
+            chapterIndex: chapter.chapterIndex,
+            id: seriesId,
+          },
+          alt: chapterPage.alts.length ? {
+            id: altId,
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            label: ('alt' in submission && submission.alt?.label) || 'Original',
+          } : undefined,
+        };
+      });
+    });
+
+    creationMutation.mutate(pages);
   }
 
   return (
@@ -168,12 +201,20 @@ export const Comic = ({ seriesId }: ComicProps) => {
       ))}
 
       <section className="w-full flex justify-center">
-        <Typography.H5 className="flex items-center">
-          <Button>
-            <Plus className="mr-2 h-4 w-4" />
-            Add chapter
-          </Button>
-        </Typography.H5>
+        <ChapterFormDialog
+          defaultValues={{
+            _id: seriesId,
+            chapterIndex: chapters.length + 1,
+          }}
+          onSubmit={createChapter}
+        >
+          <ChapterFormDialog.Trigger asChild>
+            <Button>
+              <Plus className="mr-2 h-4 w-4" />
+              Add chapter
+            </Button>
+          </ChapterFormDialog.Trigger>
+        </ChapterFormDialog>
       </section>
     </div>
   );
