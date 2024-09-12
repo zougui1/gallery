@@ -55,7 +55,7 @@ export const ComicSubmissionForm = () => {
               ...chapterPage.series,
               type: PostSeriesType.comic,
               name: data.name,
-              chapterName: chapterPage.title,
+              chapterName: chapter.title,
               chapterIndex: chapter.chapterIndex,
               id: seriesId,
             },
