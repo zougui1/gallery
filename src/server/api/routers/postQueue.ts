@@ -176,7 +176,6 @@ export const postQueueRouter = createTRPCRouter({
           });
         }
 
-        await new Promise(r => setTimeout(r, 2500))
         await DB.postQueue.deleteById(postQueue._id);
       }),
 });

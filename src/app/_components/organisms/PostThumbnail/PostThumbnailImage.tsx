@@ -8,15 +8,9 @@ import { PostRating } from '~/enums';
 
 import { usePostThumbnail } from './context';
 import { PostContentIcon } from './_internal';
-import { useState } from 'react';
-import { useWindowEvent } from '~/app/_hooks';
 
 export const PostThumbnailImage = ({ className, children, ...rest }: PostThumbnailImageProps) => {
   const { post } = usePostThumbnail();
-  const [hide, setHide] = useState(true);
-
-  useWindowEvent('blur', () => setHide(true));
-  useWindowEvent('focus', () => setHide(false));
 
   return (
     <div
@@ -27,10 +21,6 @@ export const PostThumbnailImage = ({ className, children, ...rest }: PostThumbna
         post.rating === PostRating.sfw && 'border-gray-600/90 shadow-gray-700 lg:hover:shadow-gray-700',
         post.rating === PostRating.nsfw && 'border-red-600/90 shadow-red-700 lg:hover:shadow-red-700',
         rest.onClick && 'cursor-pointer',
-        //! don't ship to production
-        //@ts-expect-error
-        //! don't ship to production
-        hide && 'blur-lg brightness-[85%]',
         className,
       )}
     >

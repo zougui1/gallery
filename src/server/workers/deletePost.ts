@@ -75,8 +75,21 @@ export const deletePost = async (postQueue: PostQueueSchemaWithId): Promise<void
     });
   }
 
-  await DB.postQueue.addStep(postQueue._id, {
-    status: PostQueueStatus.deleted,
-    date: new Date(),
-  });
+  // TODO log errors
+  await Promise.allSettled([
+    DB.postQueue.addStep(postQueue._id, {
+      status: PostQueueStatus.deleted,
+      date: new Date(),
+    }),
+    post.alt && updateLastRemainingAlt(post.alt.id),
+  ]);
+}
+
+const updateLastRemainingAlt = async (altId: string): Promise<void> => {
+  const altPosts = await DB.post.findManyByAltId([altId]);
+
+  // if there is only 1 alt remaining then we remove its alt metadata as it becomes obsolete
+  if (altPosts.length === 1) {
+    await DB.post.removeAlt(altPosts[0]!._id);
+  }
 }

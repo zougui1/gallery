@@ -65,6 +65,14 @@ export class PostQuery {
     }
   }
 
+  removeAlt = async (id: string): Promise<PostSchemaWithId | undefined> => {
+    const document = await PostModel.findByIdAndUpdate(id, { $unset: { alt: 1 } });
+
+    if (document) {
+      return this.deserialize(document);
+    }
+  }
+
   findById = async (id: string): Promise<PostSchemaWithId | undefined> => {
     const document = await PostModel.findById(id).lean();
 
