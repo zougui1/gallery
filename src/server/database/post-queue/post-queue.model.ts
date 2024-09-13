@@ -11,6 +11,9 @@ export class PostQueueStep {
   @prop({ type: String, required: false })
   message?: string;
 
+  @prop({ type: [String], required: false })
+  errors?: string[];
+
   @prop({ type: Date, required: true })
   date!: Date;
 }

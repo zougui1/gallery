@@ -10,6 +10,7 @@ const step = z.object({
   status: z.enum(getEnumValues(PostQueueStatus)),
   message: z.string().optional(),
   date: z.date(),
+  errors: z.array(z.string()).optional(),
 });
 
 

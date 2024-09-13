@@ -119,6 +119,10 @@ export class PostQuery {
     });
   }
 
+  deleteById = async (id: string): Promise<void> => {
+    await PostModel.findByIdAndDelete(id);
+  }
+
   deserialize = (document: LeanPost): PostSchemaWithId => {
     return {
       ...postSchema.parse(document),

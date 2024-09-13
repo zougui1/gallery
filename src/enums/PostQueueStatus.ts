@@ -55,3 +55,13 @@ export const postQueueStatusLabelMap: Record<PostQueueStatus, string> = {
 };
 
 export const postQueueStatusValues = getEnumValues(PostQueueStatus);
+
+export const permanentlyDeletableStatuses = [
+  PostQueueStatus.error,
+  PostQueueStatus.deleted,
+  PostQueueStatus.ignored,
+];
+
+export const deletableStatuses = [
+  PostQueueStatus.complete,
+];

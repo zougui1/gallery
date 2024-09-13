@@ -4,8 +4,8 @@ import { z } from 'zod';
 import { createTRPCRouter, publicProcedure } from '~/server/api/trpc';
 import { DB } from '~/server/database';
 import { submissionUploadSchema } from '~/schemas/upload';
-import { postTaskQueue } from '~/server/workers';
-import { PostQueueStatus, PostSeriesType } from '~/enums';
+import { deletePost, postTaskQueue } from '~/server/workers';
+import { PostQueueStatus, PostSeriesType, deletableStatuses, permanentlyDeletableStatuses, postQueueStatusLabelMap } from '~/enums';
 import { getEnumValues } from '~/utils';
 
 const checkDuplicate = async (url: string, message = 'This URL has already been uploaded'): Promise<void> => {
@@ -101,11 +101,6 @@ export const postQueueRouter = createTRPCRouter({
       id: z.string().min(1),
     }))
     .mutation(async ({ input }) => {
-      await DB.postQueue.addStep(input.id, {
-        date: new Date(),
-        status: PostQueueStatus.restarted,
-        message: 'The processing of the post has been manually restarted',
-      });
       const postQueue = await DB.postQueue.findById(input.id);
 
       if (!postQueue) {
@@ -114,6 +109,12 @@ export const postQueueRouter = createTRPCRouter({
           message: 'The post does not exist',
         });
       }
+
+      await DB.postQueue.addStep(postQueue._id, {
+        date: new Date(),
+        status: PostQueueStatus.restarted,
+        message: 'The processing of the post has been manually restarted',
+      });
 
       postTaskQueue.add(postQueue);
     }),
@@ -125,4 +126,57 @@ export const postQueueRouter = createTRPCRouter({
     .query(async ({ input }) => {
       return await DB.postQueue.findBySeriesId(input.id);
     }),
+
+  delete: publicProcedure
+    .input(z.object({
+      id: z.string().min(1),
+    }))
+    .mutation(async ({ input }) => {
+      const postQueue = await DB.postQueue.findById(input.id);
+
+      if (!postQueue) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'The post does not exist',
+        });
+      }
+
+      const lastStatus = postQueue.steps[postQueue.steps.length - 1]?.status ?? PostQueueStatus.idle;
+
+      if (!deletableStatuses.includes(lastStatus)) {
+        throw new TRPCError({
+          code: 'CONFLICT',
+          message: `You cannot delete a post with the status: ${postQueueStatusLabelMap[lastStatus]}`,
+        });
+      }
+
+      await deletePost(postQueue);
+    }),
+
+    deletePermanently: publicProcedure
+      .input(z.object({
+        id: z.string().min(1),
+      }))
+      .mutation(async ({ input }) => {
+        const postQueue = await DB.postQueue.findById(input.id);
+
+        if (!postQueue) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'The post does not exist',
+          });
+        }
+
+        const lastStatus = postQueue.steps[postQueue.steps.length - 1]?.status ?? PostQueueStatus.idle;
+
+        if (!permanentlyDeletableStatuses.includes(lastStatus)) {
+          throw new TRPCError({
+            code: 'CONFLICT',
+            message: `You cannot permanently delete a post with the status: ${postQueueStatusLabelMap[lastStatus]}`,
+          });
+        }
+
+        await new Promise(r => setTimeout(r, 2500))
+        await DB.postQueue.deleteById(postQueue._id);
+      }),
 });

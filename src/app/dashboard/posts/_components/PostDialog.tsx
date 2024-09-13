@@ -3,7 +3,7 @@
 import { type ColumnDef } from '@tanstack/react-table';
 import { DateTime } from 'luxon';
 
-import { Button, DataTable, Dialog } from '@zougui/react.ui';
+import { Button, DataTable, Dialog, type DialogRootProps } from '@zougui/react.ui';
 
 import { type PostQueueSchemaWithId, type PostQueueStepSchema } from '~/server/database';
 import { formatDate } from '~/app/_utils';
@@ -30,7 +30,7 @@ const columns: ColumnDef<PostQueueStepSchema>[] = [
   },
 ];
 
-export const PostDialog = ({ post, children }: PostDialogProps) => {
+export const PostDialog = ({ post, children, ...rest }: PostDialogProps) => {
   const restartMutation = api.postQueue.restart.useMutation();
 
   const restartProcess = () => {
@@ -38,7 +38,7 @@ export const PostDialog = ({ post, children }: PostDialogProps) => {
   }
 
   return (
-    <Dialog.Root>
+    <Dialog.Root {...rest}>
       {children}
 
       <Dialog.Content className="max-w-5xl">
@@ -76,7 +76,6 @@ export const PostDialog = ({ post, children }: PostDialogProps) => {
 
 PostDialog.Trigger = Dialog.Trigger;
 
-export interface PostDialogProps {
+export interface PostDialogProps extends DialogRootProps {
   post: PostQueueSchemaWithId;
-  children?: React.ReactNode;
 }

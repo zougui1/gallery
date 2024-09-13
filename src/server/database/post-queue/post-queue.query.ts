@@ -149,6 +149,10 @@ export class PostQueueQuery {
     return documents.map(this.deserialize);
   }
 
+  deleteById = async (id: string): Promise<void> => {
+    await PostQueueModel.findByIdAndDelete(id);
+  }
+
   private deserialize = (document: LeanPostQueue): PostQueueSchemaWithId => {
     return {
       ...postQueueSchema.parse(document),
