@@ -41,7 +41,7 @@ const links: NavItem[] = [
 
 const NavLink = ({ href, children }: { href: string; children?: React.ReactNode }) => {
   return (
-    <NavigationMenu.LinkItem asChild>
+    <NavigationMenu.LinkItem asChild className="bg-transparent">
       <Link href={href}>{children}</Link>
     </NavigationMenu.LinkItem>
   );
@@ -50,7 +50,7 @@ const NavLink = ({ href, children }: { href: string; children?: React.ReactNode 
 const NavLinkMenu = ({ links, children }: { links: Link[]; children?: React.ReactNode }) => {
   return (
     <NavigationMenu.Item className="relative">
-      <NavigationMenu.Trigger>{children}</NavigationMenu.Trigger>
+      <NavigationMenu.Trigger className="bg-transparent">{children}</NavigationMenu.Trigger>
 
       <NavigationMenu.Content className="absolute top-4">
         <ul className="p-6 ">
