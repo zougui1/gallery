@@ -12,7 +12,7 @@ export class PostQueueStep {
   message?: string;
 
   @prop({ type: [String], required: false })
-  errors?: string[];
+  errorList?: string[];
 
   @prop({ type: Date, required: true })
   date!: Date;

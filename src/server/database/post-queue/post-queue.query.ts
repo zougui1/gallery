@@ -1,6 +1,5 @@
 import { sort } from 'radash';
 import type { FlattenMaps, Types } from 'mongoose';
-import { type z } from 'zod';
 
 import { busyStatuses } from '~/server/workers';
 import { PostQueueStatus } from '~/enums';
@@ -8,6 +7,7 @@ import { PostQueueStatus } from '~/enums';
 import { PostQueueModel, type PostQueue } from './post-queue.model';
 import {
   postQueueSchema,
+  type PostQueueSchema,
   type PostQueueSchemaWithId,
   type PostQueueStepSchema,
 } from './post-queue.schema';
@@ -17,7 +17,7 @@ type LeanPostQueue = FlattenMaps<PostQueue> & {
 };
 
 export class PostQueueQuery {
-  create = async (data: z.input<typeof postQueueSchema>): Promise<PostQueueSchemaWithId> => {
+  create = async (data: Omit<PostQueueSchema, 'steps'>): Promise<PostQueueSchemaWithId> => {
     const document = await PostQueueModel.create(postQueueSchema.parse(data));
     return this.deserialize(document);
   }
@@ -30,7 +30,7 @@ export class PostQueueQuery {
     }
   }
 
-  createMany = async (data: z.input<typeof postQueueSchema>[]): Promise<PostQueueSchemaWithId[]> => {
+  createMany = async (data: Omit<PostQueueSchema, 'steps'>[]): Promise<PostQueueSchemaWithId[]> => {
     const documents = await PostQueueModel.create(data.map(d => postQueueSchema.parse(d)));
     return sort(documents.map(this.deserialize), d => d.createdAt.getTime());
   }
@@ -101,6 +101,10 @@ export class PostQueueQuery {
         steps: step,
       },
     });
+  }
+
+  setAlt = async (url: string, alt: NonNullable<PostQueueSchema['alt']>): Promise<void> => {
+    await PostQueueModel.updateOne({ url }, { alt });
   }
 
   findAllKeywords = async (): Promise<string[]> => {

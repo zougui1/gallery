@@ -64,7 +64,7 @@ export const PostDialog = ({ post, children, ...rest }: PostDialogProps) => {
 
         <Dialog.Footer>
           <Dialog.Close asChild>
-            <Button>Close</Button>
+            <Button variant="outline">Close</Button>
           </Dialog.Close>
 
           <Button onClick={restartProcess}>Restart process</Button>

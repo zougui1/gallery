@@ -60,7 +60,7 @@ export const deletePost = async (postQueue: PostQueueSchemaWithId): Promise<void
       status: PostQueueStatus.error,
       date: new Date(),
       message: 'An error occurred while deleting the post\'s files',
-      errors,
+      errorList: errors,
     });
   }
 
@@ -71,7 +71,7 @@ export const deletePost = async (postQueue: PostQueueSchemaWithId): Promise<void
       status: PostQueueStatus.error,
       date: new Date(),
       message: 'The post\'s files have been deleted but an error occurred while deleting the post\'s data from the database',
-      errors,
+      errorList: errors,
     });
   }
 

@@ -63,16 +63,7 @@ const columns: ColumnDef<PostQueueSchemaWithId>[] = [
   {
     id: 'actions',
     header: () => {
-      return (
-        <div className="flex justify-end">
-          <IconButton>
-            <span>
-              <span className="sr-only">New</span>
-              <Plus className="h-4 w-4" />
-            </span>
-          </IconButton>
-        </div>
-      );
+      return null;
     },
 
     cell: function ActionCell({ row }) {

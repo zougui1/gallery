@@ -89,6 +89,10 @@ export class PostQuery {
     }
   }
 
+  setAlt = async (sourceUrl: string, alt: NonNullable<PostSchema['alt']>): Promise<void> => {
+    await PostModel.updateOne({ sourceUrl }, { alt });
+  }
+
   findManyById = async (ids: string[]): Promise<PostSchemaWithId[]> => {
     // arbitrary limit. this will never be reached in a real usage
     const documents = await PostModel.find({ _id: { $in: ids } }).limit(200).lean();

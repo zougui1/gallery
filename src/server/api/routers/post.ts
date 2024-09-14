@@ -4,6 +4,7 @@ import { unique, group, sort } from 'radash';
 import { createTRPCRouter, publicProcedure } from '~/server/api/trpc';
 import { DB, type PostSchemaWithId } from '~/server/database';
 import { PostRating, PostType } from '~/enums';
+import { TRPCError } from '@trpc/server';
 
 const availablePostRatings = new Set<string>(Object.values(PostRating));
 const availablePostTypes = new Set<string>(Object.values(PostType));
@@ -63,6 +64,14 @@ export const postRouter = createTRPCRouter({
       return await DB.post.findManyBySeriesId([input.id]);
     }),
 
+  findByAltId: publicProcedure
+    .input(z.object({
+      id: z.string(),
+    }))
+    .query(async ({ input }) => {
+      return await DB.post.findManyByAltId([input.id]);
+    }),
+
   getGallery: publicProcedure
     .input(z.object({
       postIds: z.array(z.string()).optional(),
@@ -106,5 +115,26 @@ export const postRouter = createTRPCRouter({
     }))
     .mutation(async ({ input }) => {
       await DB.post.removeKeyword(input.id, input.keyword);
+    }),
+
+  setAlt: publicProcedure
+    .input(z.object({
+      sourceUrl: z.string(),
+      alt: z.object({
+        id: z.string().min(1),
+        label: z.string().min(1),
+      })
+    }))
+    .mutation(async ({ input }) => {
+      const results = await Promise.allSettled([
+        DB.post.setAlt(input.sourceUrl, input.alt),
+        DB.postQueue.setAlt(input.sourceUrl, input.alt),
+      ]);
+
+      const errors = results.map(r => r.status === 'rejected' ? r.reason as unknown : undefined).filter(Boolean);
+
+      if (errors.length) {
+        throw new AggregateError(errors);
+      }
     }),
 });

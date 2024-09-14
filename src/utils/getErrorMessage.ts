@@ -11,12 +11,13 @@ export function getErrorMessage(value: unknown, optionsOrDefaultMessage?: string
     : { defaultMessage: optionsOrDefaultMessage, withCause: undefined };
 
   if (
-    isObject(value) &&
+    value &&
+    typeof value === 'object' &&
     'message' in value &&
     typeof value.message === 'string' &&
     value.message.trim()
   ) {
-    const cause = 'cause' in value ? `: ${withCause?.(value.cause)}` : undefined;
+    const cause = 'cause' in value ? `: ${withCause?.(value.cause)}` : '';
     return `${value.message}${cause}`;
   }
 

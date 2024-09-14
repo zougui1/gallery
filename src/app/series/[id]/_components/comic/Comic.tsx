@@ -14,8 +14,7 @@ import { PostQueueStatus, PostSeriesType } from '~/enums';
 import { nanoid } from 'nanoid';
 import { Status } from '~/app/dashboard/posts/_components/Status';
 import { PostQueueDropdown } from '~/app/dashboard/posts/_components/PostQueueDropdown';
-import { PageFormDialog } from '~/app/upload/_components/comic-form/PageFormDialog';
-import { ChapterFormDialog, ChapterFormDialogProps } from '~/app/upload/_components/comic-form/ChapterFormDialog';
+import { ChapterFormDialog, type ChapterFormDialogProps } from '~/app/upload/_components/comic-form/ChapterFormDialog';
 
 type Chapter = {
   name?: string;
@@ -23,17 +22,17 @@ type Chapter = {
   queues: PostQueueSchemaWithId[];
 }
 
-const getPostMap = (posts: PostSchemaWithId[]): Map<number, Map<number, PostSchemaWithId>> => {
-  const map = new Map<number, Map<number, PostSchemaWithId>>();
+const getPostMap = (posts: PostSchemaWithId[]): Map<number, Map<number, PostSchemaWithId | Map<string, PostSchemaWithId>>> => {
+  const map = new Map<number, Map<number, PostSchemaWithId | Map<string, PostSchemaWithId>>>();
 
-  const getByChapter = (chapterIndex: number): Map<number, PostSchemaWithId> => {
+  const getByChapter = (chapterIndex: number): Map<number, PostSchemaWithId | Map<string, PostSchemaWithId>> => {
     const pageMap = map.get(chapterIndex);
 
     if (pageMap) {
       return pageMap;
     }
 
-    const newPageMap = new Map<number, PostSchemaWithId>();
+    const newPageMap = new Map<number, PostSchemaWithId | Map<string, PostSchemaWithId>>();
     map.set(chapterIndex, newPageMap);
 
     return newPageMap;
@@ -45,7 +44,20 @@ const getPostMap = (posts: PostSchemaWithId[]): Map<number, Map<number, PostSche
     }
 
     const pageMap = getByChapter(post.series.chapterIndex);
-    pageMap.set(post.series.partIndex, post);
+
+    if (!post.alt) {
+      pageMap.set(post.series.partIndex, post);
+      continue;
+    }
+
+    const maybeAlts = pageMap.get(post.series.partIndex);
+
+    const altsMap = maybeAlts instanceof Map
+      ? maybeAlts
+      : new Map<string, PostSchemaWithId>();
+
+    altsMap.set(post.alt.label, post);
+    pageMap.set(post.series.partIndex, altsMap);
   }
 
   return map;
@@ -162,10 +174,13 @@ export const Comic = ({ seriesId }: ComicProps) => {
           <ChapterSection.Title />
 
           <ChapterSection.List>
-            {sort(chapter.queues, q => q.series?.partIndex ?? 0).map(queue => {
-              const post = postMap.get(chapter.index)?.get(queue.series?.partIndex ?? 0);
+            {sort(chapter.queues, q => q.createdAt.getTime()).flatMap(queue => {
+              const postOrAltsMap = postMap.get(chapter.index)?.get(queue.series?.partIndex ?? 0);
+              const post = postOrAltsMap instanceof Map && queue.alt
+                ? postOrAltsMap.get(queue.alt.label)
+                : postOrAltsMap;
 
-              if (post) {
+              if (post && !(post instanceof Map)) {
                 return <ChapterSection.Item key={queue._id} post={post} />;
               }
 
