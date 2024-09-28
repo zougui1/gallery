@@ -42,15 +42,17 @@ export const StorySubmissionForm = () => {
     const now = Date.now();
     const seriesId = nanoid();
 
-    await creationMutation.mutateAsync(series.map((submission, index) => ({
-      ...submission,
-      createdAt: new Date(now + (index * 1000)),
-      series: {
-        ...submission.series,
-        name: data.name,
-        id: seriesId,
-      },
-    })));
+    await creationMutation.mutateAsync({
+      newPosts: series.map((submission, index) => ({
+        ...submission,
+        createdAt: new Date(now + (index * 1000)),
+        series: {
+          ...submission.series,
+          name: data.name,
+          id: seriesId,
+        },
+      })),
+    });
 
     form.reset();
     setSeries([]);

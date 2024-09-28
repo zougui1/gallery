@@ -107,6 +107,18 @@ export class PostQueueQuery {
     await PostQueueModel.updateOne({ url }, { alt });
   }
 
+  removeAlt = async (query: { _id: string; } | { sourceUrl: string; }): Promise<void> => {
+    await PostQueueModel.updateOne(query, { $unset: { alt: 1 } });
+  }
+
+  setSeries = async (url: string, series: NonNullable<PostQueueSchema['series']>): Promise<void> => {
+    await PostQueueModel.updateOne({ url }, { series });
+  }
+
+  setAdditionalData = async (url: string, data: Partial<Pick<PostQueueSchema, 'series' | 'alt'>>): Promise<void> => {
+    await PostQueueModel.updateOne({ url }, data);
+  }
+
   findAllKeywords = async (): Promise<string[]> => {
     return await PostQueueModel.distinct('keywords');
   }

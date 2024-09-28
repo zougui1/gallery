@@ -90,6 +90,6 @@ const updateLastRemainingAlt = async (altId: string): Promise<void> => {
 
   // if there is only 1 alt remaining then we remove its alt metadata as it becomes obsolete
   if (altPosts.length === 1) {
-    await DB.post.removeAlt(altPosts[0]!._id);
+    await DB.post.removeAlt({ _id: altPosts[0]!._id });
   }
 }

@@ -6,3 +6,4 @@ export * from './nullifyEmptyString';
 export * from './getNumber';
 export * from './getValueFromEnum';
 export * from './toggleArrayItem';
+export * from './multiSort';

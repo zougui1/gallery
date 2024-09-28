@@ -6,7 +6,7 @@ import { ChevronDown, Plus } from 'lucide-react';
 import { Button, IconButton, Typography } from '@zougui/react.ui';
 
 import { api } from '~/trpc/react';
-import { type PostQueueSchemaWithId, type PostSchemaWithId } from '~/server/database';
+import { type PostQueueSchemaWithId } from '~/server/database';
 
 import { ChapterSection } from './ChapterSection';
 import { type ChapterSectionNewPageButtonProps } from './ChapterSection/ChapterSectionNewPageButton';
@@ -15,52 +15,12 @@ import { nanoid } from 'nanoid';
 import { Status } from '~/app/dashboard/posts/_components/Status';
 import { PostQueueDropdown } from '~/app/dashboard/posts/_components/PostQueueDropdown';
 import { ChapterFormDialog, type ChapterFormDialogProps } from '~/app/upload/_components/comic-form/ChapterFormDialog';
+import { multiSort } from '~/utils';
 
 type Chapter = {
   name?: string;
   index: number;
   queues: PostQueueSchemaWithId[];
-}
-
-const getPostMap = (posts: PostSchemaWithId[]): Map<number, Map<number, PostSchemaWithId | Map<string, PostSchemaWithId>>> => {
-  const map = new Map<number, Map<number, PostSchemaWithId | Map<string, PostSchemaWithId>>>();
-
-  const getByChapter = (chapterIndex: number): Map<number, PostSchemaWithId | Map<string, PostSchemaWithId>> => {
-    const pageMap = map.get(chapterIndex);
-
-    if (pageMap) {
-      return pageMap;
-    }
-
-    const newPageMap = new Map<number, PostSchemaWithId | Map<string, PostSchemaWithId>>();
-    map.set(chapterIndex, newPageMap);
-
-    return newPageMap;
-  }
-
-  for (const post of posts) {
-    if (!post.series) {
-      continue;
-    }
-
-    const pageMap = getByChapter(post.series.chapterIndex);
-
-    if (!post.alt) {
-      pageMap.set(post.series.partIndex, post);
-      continue;
-    }
-
-    const maybeAlts = pageMap.get(post.series.partIndex);
-
-    const altsMap = maybeAlts instanceof Map
-      ? maybeAlts
-      : new Map<string, PostSchemaWithId>();
-
-    altsMap.set(post.alt.label, post);
-    pageMap.set(post.series.partIndex, altsMap);
-  }
-
-  return map;
 }
 
 export const Comic = ({ seriesId }: ComicProps) => {
@@ -71,7 +31,7 @@ export const Comic = ({ seriesId }: ComicProps) => {
   const chapters: Chapter[] = [];
   const postByChapter = group(postQueues, p => p.series?.chapterIndex ?? 0);
 
-  const postMap = getPostMap(posts);
+  const postMap = new Map(posts.map(post => [post.sourceUrl, post]));
 
   for (const posts of Object.values(postByChapter)) {
     const [post] = posts ?? [];
@@ -102,25 +62,27 @@ export const Comic = ({ seriesId }: ComicProps) => {
       const altId = nanoid();
       const now = Date.now();
 
-      creationMutation.mutate([data, ...data.alts].map((submission, index) => {
-        return {
-          ...submission,
-          series: {
-            partIndex: data.series.partIndex,
-            id: posts[0]?.series?.id ?? '',
-            type: PostSeriesType.comic,
-            chapterIndex: chapter.index,
-            chapterName: chapter.name,
-            name: posts[0]?.series?.name ?? 'Untitled',
-          },
-          alt: data.alts.length ? {
-            id: altId,
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            label: ('alt' in submission && submission.alt?.label) || 'Original',
-          } : undefined,
-          createdAt: new Date(now + index),
-        };
-      }));
+      creationMutation.mutate({
+        newPosts: [data, ...data.alts].map((submission, index) => {
+          return {
+            ...submission,
+            series: {
+              partIndex: data.series.partIndex,
+              id: posts[0]?.series?.id ?? '',
+              type: PostSeriesType.comic,
+              chapterIndex: chapter.index,
+              chapterName: chapter.name,
+              name: posts[0]?.series?.name ?? 'Untitled',
+            },
+            alt: data.alts.length ? {
+              id: altId,
+              // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+              label: ('alt' in submission && submission.alt?.label) || 'Original',
+            } : undefined,
+            createdAt: new Date(now + index),
+          };
+        }),
+      });
     }
   }
 
@@ -151,7 +113,7 @@ export const Comic = ({ seriesId }: ComicProps) => {
       });
     });
 
-    creationMutation.mutate(pages);
+    creationMutation.mutate({ newPosts: pages });
   }
 
   return (
@@ -174,11 +136,13 @@ export const Comic = ({ seriesId }: ComicProps) => {
           <ChapterSection.Title />
 
           <ChapterSection.List>
-            {sort(chapter.queues, q => q.createdAt.getTime()).flatMap(queue => {
-              const postOrAltsMap = postMap.get(chapter.index)?.get(queue.series?.partIndex ?? 0);
+            {multiSort(chapter.queues, [{ fn: q => q.series?.partIndex ?? 0 }, { fn: q => q.createdAt }]).flatMap(queue => {
+              /*const postOrAltsMap = postMap.get(chapter.index)?.get(queue.series?.partIndex ?? 0);
               const post = postOrAltsMap instanceof Map && queue.alt
                 ? postOrAltsMap.get(queue.alt.label)
-                : postOrAltsMap;
+                : postOrAltsMap;*/
+
+              const post = postMap.get(queue.url);
 
               if (post && !(post instanceof Map)) {
                 return <ChapterSection.Item key={queue._id} post={post} />;

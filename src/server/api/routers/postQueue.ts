@@ -3,7 +3,7 @@ import { z } from 'zod';
 
 import { createTRPCRouter, publicProcedure } from '~/server/api/trpc';
 import { DB } from '~/server/database';
-import { submissionUploadSchema } from '~/schemas/upload';
+import { altUploadSchema, seriesUploadSchema, submissionUploadSchema } from '~/schemas/upload';
 import { deletePost, postTaskQueue } from '~/server/workers';
 import { PostQueueStatus, PostSeriesType, deletableStatuses, permanentlyDeletableStatuses, postQueueStatusLabelMap } from '~/enums';
 import { getEnumValues } from '~/utils';
@@ -13,7 +13,7 @@ const checkDuplicate = async (url: string, message = 'This URL has already been 
 
   if (duplicate) {
     throw new TRPCError({
-      code: 'BAD_REQUEST',
+      code: 'CONFLICT',
       message,
     });
   }
@@ -21,25 +21,19 @@ const checkDuplicate = async (url: string, message = 'This URL has already been 
 
 export const postQueueRouter = createTRPCRouter({
   create: publicProcedure
-    .input(z.union([
-      z.array(submissionUploadSchema.asStoryChapter),
-      z.array(submissionUploadSchema.asAlt),
-      submissionUploadSchema.asAny,
-    ]))
+    .input(z.object({
+      newPosts: z.array(submissionUploadSchema.asAny),
+      associatedPosts: z.array(z.object({
+        sourceUrl: z.string(),
+        alt: altUploadSchema.optional(),
+        series: seriesUploadSchema.optional(),
+      })).optional(),
+    }))
     .mutation(async ({ input }) => {
-      if (!Array.isArray(input)) {
-        await checkDuplicate(input.url);
-
-        const postQueue = await DB.postQueue.create(input);
-        postTaskQueue.add(postQueue);
-
-        return;
-      }
-
-      await Promise.race(input.map(async submission => {
+      await Promise.all(input.newPosts.map(async submission => {
         const errorMessageParts: string[] = [];
 
-        if ('series' in submission) {
+        if ('series' in submission && submission.series) {
           const { type, chapterIndex, partIndex } = submission.series;
           const partName = type === PostSeriesType.comic ? 'page' : 'part';
 
@@ -63,14 +57,15 @@ export const postQueueRouter = createTRPCRouter({
         await checkDuplicate(submission.url, errorMessage);
       }));
 
-      input.forEach(v => {
-        if ('series' in v) {
-          console.log(v.series.chapterIndex, v.series.partIndex);
-        } else {
-          console.log(v.url);
-        }
-      });
-      const postQueues = await DB.postQueue.createMany(input);
+      const [postQueues] = await Promise.all([
+        DB.postQueue.createMany(input.newPosts),
+        ...(input.associatedPosts?.flatMap(post => {
+          return [
+            DB.post.setAdditionalData(post.sourceUrl, post),
+            DB.postQueue.setAdditionalData(post.sourceUrl, post),
+          ];
+        }) ?? []),
+      ]);
 
       for (const postQueue of postQueues) {
         postTaskQueue.add(postQueue);

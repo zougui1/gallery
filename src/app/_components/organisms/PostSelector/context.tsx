@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useCallback, useContext, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useMemo, useState, useRef } from 'react';
 
 import { toggleArrayItem } from '~/utils';
 import { type PostSchemaWithId } from '~/server/database';
@@ -27,29 +27,43 @@ export type PostSelectionType = 'post' | 'alt' | 'series';
 
 export const PostSelectorContext = createContext<PostSelectorState | undefined>(undefined);
 
-export const PostSelectorProvider = ({ children }: PostSelectorProviderProps) => {
+export const PostSelectorProvider = ({ posts: controlledPosts, onPostsChange, children }: PostSelectorProviderProps) => {
   const [internalState, setInternalState] = useState<InternalState>({
     posts: [],
     altIds: [],
     seriesIds: [],
   });
 
+  const onPostsChangeRef = useRef(onPostsChange);
+  onPostsChangeRef.current = onPostsChange;
+
+  const isControlled = Boolean(controlledPosts);
+  const posts = controlledPosts ?? internalState.posts;
+
   const hasSelection = (
-    internalState.posts.length > 0 &&
+    posts.length > 0 &&
     internalState.altIds.length > 0 &&
     internalState.seriesIds.length > 0
   );
 
-  const selectPost = (post: PostSchemaWithId) => {
-    setInternalState(prevState => {
-      return {
-        ...prevState,
-        posts: toggleArrayItem(prevState.posts, post, p => p._id),
-      };
-    });
-  }
+  const selectPost = useCallback((post: PostSchemaWithId) => {
+    if (isControlled) {
+      onPostsChangeRef.current?.(toggleArrayItem(posts, post, p => p._id));
+    } else {
+      setInternalState(prevState => {
+        return {
+          ...prevState,
+          posts: toggleArrayItem(prevState.posts, post, p => p._id),
+        };
+      });
+    }
+  }, [isControlled, posts]);
 
-  const selectAltId = (altId: string) => {
+  const selectAltId = useCallback((altId: string) => {
+    if (isControlled) {
+      return;
+    }
+
     setInternalState(prevState => {
       const newAltIds = toggleArrayItem(prevState.altIds, altId);
 
@@ -61,9 +75,13 @@ export const PostSelectorProvider = ({ children }: PostSelectorProviderProps) =>
         altIds: newAltIds,
       };
     });
-  }
+  }, [isControlled]);
 
-  const selectSeriesId = (seriesId: string) => {
+  const selectSeriesId = useCallback((seriesId: string) => {
+    if (isControlled) {
+      return;
+    }
+
     setInternalState(prevState => {
       const newSeriesIds = toggleArrayItem(prevState.seriesIds, seriesId);
 
@@ -75,7 +93,7 @@ export const PostSelectorProvider = ({ children }: PostSelectorProviderProps) =>
         seriesIds: newSeriesIds,
       };
     });
-  }
+  }, [isControlled]);
 
   const getSelectionType = useCallback((post: PostSchemaWithId): PostSelectionType | undefined => {
     if (post.series && internalState.seriesIds.includes(post.series.id)) {
@@ -86,10 +104,10 @@ export const PostSelectorProvider = ({ children }: PostSelectorProviderProps) =>
       return 'alt';
     }
 
-    if (internalState.posts.some(p => p._id === post._id)) {
+    if (posts.some(p => p._id === post._id)) {
       return 'post';
     }
-  }, [internalState]);
+  }, [internalState, posts]);
 
   const clear = () => {
     setInternalState({ posts: [], altIds: [], seriesIds: [] });
@@ -97,7 +115,7 @@ export const PostSelectorProvider = ({ children }: PostSelectorProviderProps) =>
 
   const state = useMemo(() => {
     return {
-      postIds: internalState.posts.map(post => post._id),
+      postIds: posts.map(post => post._id),
       altIds: internalState.altIds,
       seriesIds: internalState.seriesIds,
       hasSelection,
@@ -107,7 +125,15 @@ export const PostSelectorProvider = ({ children }: PostSelectorProviderProps) =>
       clear,
       getSelectionType,
     };
-  }, [internalState, hasSelection, getSelectionType]);
+  }, [
+    internalState,
+    hasSelection,
+    posts,
+    getSelectionType,
+    selectPost,
+    selectAltId,
+    selectSeriesId,
+  ]);
 
   return (
     <PostSelectorContext.Provider value={state}>
@@ -117,6 +143,8 @@ export const PostSelectorProvider = ({ children }: PostSelectorProviderProps) =>
 }
 
 export interface PostSelectorProviderProps {
+  posts?: PostSchemaWithId[];
+  onPostsChange?: (posts: PostSchemaWithId[]) => void;
   children?: React.ReactNode;
 }
 

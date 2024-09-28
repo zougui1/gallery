@@ -19,7 +19,7 @@ export class PostQuery {
     return this.deserialize(document);
   }
 
-  search = async (options: FindOptions): Promise<{ posts: PostSchemaWithId[], hasMore: boolean }> => {
+  search = async (options: SearchOptions): Promise<{ posts: PostSchemaWithId[], hasMore: boolean }> => {
     const keywordsMatch = options.keywords?.length ? {
       keywords: {
         $all: options.keywords,
@@ -38,11 +38,21 @@ export class PostQuery {
       },
     } : {};
 
+    const excludeAltsMatch = options.excludeAlts ? {
+      alt: null,
+    } : {};
+
+    const excludeSeriesMatch = options.excludeSeries ? {
+      series: null,
+    } : {};
+
     const documents = await PostModel
       .find({
         ...keywordsMatch,
         ...ratingsMatch,
         ...typesMatch,
+        ...excludeAltsMatch,
+        ...excludeSeriesMatch,
       })
       .sort({ createdAt: -1 })
       .skip((options.page - 1) * POSTS_PER_PAGE)
@@ -65,12 +75,8 @@ export class PostQuery {
     }
   }
 
-  removeAlt = async (id: string): Promise<PostSchemaWithId | undefined> => {
-    const document = await PostModel.findByIdAndUpdate(id, { $unset: { alt: 1 } });
-
-    if (document) {
-      return this.deserialize(document);
-    }
+  removeAlt = async (query: { _id: string; } | { sourceUrl: string; }): Promise<void> => {
+    await PostModel.updateOne(query, { $unset: { alt: 1 } });
   }
 
   findById = async (id: string): Promise<PostSchemaWithId | undefined> => {
@@ -91,6 +97,14 @@ export class PostQuery {
 
   setAlt = async (sourceUrl: string, alt: NonNullable<PostSchema['alt']>): Promise<void> => {
     await PostModel.updateOne({ sourceUrl }, { alt });
+  }
+
+  setSeries = async (sourceUrl: string, series: NonNullable<PostSchema['series']>): Promise<void> => {
+    await PostModel.updateOne({ sourceUrl }, { series });
+  }
+
+  setAdditionalData = async (sourceUrl: string, data: Partial<Pick<PostSchema, 'series' | 'alt'>>): Promise<void> => {
+    await PostModel.updateOne({ sourceUrl }, data);
   }
 
   findManyById = async (ids: string[]): Promise<PostSchemaWithId[]> => {
@@ -143,9 +157,11 @@ export class PostQuery {
   }
 }
 
-export interface FindOptions {
+export interface SearchOptions {
   page: number;
   keywords?: string[];
   ratings?: PostRating[];
   types?: PostType[];
+  excludeAlts?: boolean;
+  excludeSeries?: boolean;
 }

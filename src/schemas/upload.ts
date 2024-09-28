@@ -22,7 +22,7 @@ export const seriesUploadSchema = z.object({
 });
 
 export const altUploadSchema = z.object({
-  id: z.string(),
+  id: z.preprocess(nullifyEmptyString, z.string()),
   label: z.preprocess(nullifyEmptyString, z.string()),
 });
 

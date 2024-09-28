@@ -4,7 +4,7 @@ import { unique, group, sort } from 'radash';
 import { createTRPCRouter, publicProcedure } from '~/server/api/trpc';
 import { DB, type PostSchemaWithId } from '~/server/database';
 import { PostRating, PostType } from '~/enums';
-import { TRPCError } from '@trpc/server';
+import { altUploadSchema, seriesUploadSchema } from '~/schemas/upload';
 
 const availablePostRatings = new Set<string>(Object.values(PostRating));
 const availablePostTypes = new Set<string>(Object.values(PostType));
@@ -43,6 +43,8 @@ export const postRouter = createTRPCRouter({
         return items?.filter(item => availablePostTypes.has(item)) as PostType[] | undefined;
       }),
       page: z.number().int().min(1).default(1),
+      excludeAlts: z.boolean().optional(),
+      excludeSeries: z.boolean().optional(),
     }).default({}))
     .query(async ({ input }) => {
       return await DB.post.search(input);
@@ -120,15 +122,47 @@ export const postRouter = createTRPCRouter({
   setAlt: publicProcedure
     .input(z.object({
       sourceUrl: z.string(),
-      alt: z.object({
-        id: z.string().min(1),
-        label: z.string().min(1),
-      })
+      alt: altUploadSchema,
     }))
     .mutation(async ({ input }) => {
       const results = await Promise.allSettled([
         DB.post.setAlt(input.sourceUrl, input.alt),
         DB.postQueue.setAlt(input.sourceUrl, input.alt),
+      ]);
+
+      const errors = results.map(r => r.status === 'rejected' ? r.reason as unknown : undefined).filter(Boolean);
+
+      if (errors.length) {
+        throw new AggregateError(errors);
+      }
+    }),
+
+  setSeries: publicProcedure
+    .input(z.object({
+      sourceUrl: z.string(),
+      series: seriesUploadSchema,
+    }))
+    .mutation(async ({ input }) => {
+      const results = await Promise.allSettled([
+        DB.post.setSeries(input.sourceUrl, input.series),
+        DB.postQueue.setSeries(input.sourceUrl, input.series),
+      ]);
+
+      const errors = results.map(r => r.status === 'rejected' ? r.reason as unknown : undefined).filter(Boolean);
+
+      if (errors.length) {
+        throw new AggregateError(errors);
+      }
+    }),
+
+  removeAltData: publicProcedure
+    .input(z.object({
+      sourceUrl: z.string(),
+    }))
+    .mutation(async ({ input }) => {
+      const results = await Promise.allSettled([
+        DB.post.removeAlt({ sourceUrl: input.sourceUrl }),
+        DB.postQueue.removeAlt({ sourceUrl: input.sourceUrl }),
       ]);
 
       const errors = results.map(r => r.status === 'rejected' ? r.reason as unknown : undefined).filter(Boolean);

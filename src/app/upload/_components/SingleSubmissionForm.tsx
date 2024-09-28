@@ -44,19 +44,23 @@ export const SingleSubmissionForm = () => {
 
     if (!alts.length) {
       await creationMutation.mutateAsync({
-        ...data,
-        createdAt,
-        alt: undefined,
+        newPosts: [{
+          ...data,
+          createdAt,
+          alt: undefined,
+        }],
       });
     } else {
-      await creationMutation.mutateAsync([data, ...alts].map((submission) => ({
-        ...submission,
-        createdAt,
-        alt: {
-          id: altId,
-          label: submission.alt?.label ?? 'Original',
-        },
-      })));
+      await creationMutation.mutateAsync({
+        newPosts: [data, ...alts].map((submission) => ({
+          ...submission,
+          createdAt,
+          alt: {
+            id: altId,
+            label: submission.alt?.label ?? 'Original',
+          },
+        })),
+      });
     }
 
     form.reset();

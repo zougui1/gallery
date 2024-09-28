@@ -8,7 +8,7 @@ type Favicon = {
 };
 
 const favicons: Partial<Record<string, Favicon>> = {
-  'furaffinity.net': {
+  'www.furaffinity.net': {
     src: '/furaffinity-favicon.ico',
     title: 'FurAffinity',
   },

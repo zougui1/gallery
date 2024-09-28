@@ -1,0 +1,1 @@
+comic pages must also be able to be added from existing posts

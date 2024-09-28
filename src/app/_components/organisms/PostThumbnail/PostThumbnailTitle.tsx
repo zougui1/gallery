@@ -2,10 +2,10 @@
 
 import { Typography, cn } from '@zougui/react.ui';
 
-import { PostThumbnailLink } from './PostThumbnailLink';
+import { PostThumbnailLink, type PostThumbnailLinkProps } from './PostThumbnailLink';
 import { usePostThumbnail } from './context';
 
-export const PostThumbnailTitle = ({ className, children, ...rest }: PostThumbnailTitleProps) => {
+export const PostThumbnailTitle = ({ className, children, linkTarget, ...rest }: PostThumbnailTitleProps) => {
   const { post } = usePostThumbnail();
 
   return (
@@ -16,7 +16,7 @@ export const PostThumbnailTitle = ({ className, children, ...rest }: PostThumbna
         className,
       )}
     >
-      <PostThumbnailLink>
+      <PostThumbnailLink target={linkTarget}>
         <Typography.Paragraph
           className="text-sm font-semibold text-center break-words transition-all text-blue-100 hover:text-foreground"
         >
@@ -28,5 +28,5 @@ export const PostThumbnailTitle = ({ className, children, ...rest }: PostThumbna
 }
 
 export interface PostThumbnailTitleProps extends React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> {
-
+  linkTarget?: PostThumbnailLinkProps['target'];
 }

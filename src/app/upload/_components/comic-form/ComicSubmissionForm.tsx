@@ -71,7 +71,7 @@ export const ComicSubmissionForm = () => {
       return chapterPages;
     });
 
-    await creationMutation.mutateAsync(pages);
+    await creationMutation.mutateAsync({ newPosts: pages });
 
     form.reset();
     setChapters([]);

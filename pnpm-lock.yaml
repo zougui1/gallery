@@ -42,8 +42,8 @@ importers:
         specifier: ^0.2.5
         version: 0.2.5
       '@zougui/react.ui':
-        specifier: ^0.1.15
-        version: 0.1.15(@types/react-dom@18.3.0)(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(tailwindcss@3.4.7)
+        specifier: ^0.1.17
+        version: 0.1.17(@types/react-dom@18.3.0)(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(tailwindcss@3.4.7)
       axios:
         specifier: ^1.7.3
         version: 1.7.3
@@ -1293,8 +1293,8 @@ packages:
   '@zougui/furaffinity@0.2.5':
     resolution: {integrity: sha512-2TI/7gwD7kxjaf7mJUHKCf90uA5zSq8YuDNPyZOtAwSjdPMNK56tJEArDxHgLlP75kHyEv9XdaSfx+yPQKHWYw==}
 
-  '@zougui/react.ui@0.1.15':
-    resolution: {integrity: sha512-J52L/8VIS+hDtKAQzwFH6PhIaAhIdXaKeFKR9RM5vAUtT7OjkWG9TOiahphfmqxvQFuSXhpzBngZoZcirEaU+Q==}
+  '@zougui/react.ui@0.1.17':
+    resolution: {integrity: sha512-kL4tbm83CcRPKoHideJCFUAlmu9PYl/ZijbzQcbAp7zNGDNQAaWUyh/pD2qMTDUoirA6WKFSNyaoznLvyXcIOA==}
     engines: {node: '>=14.13.1 || >=16.0.0'}
 
   acorn-jsx@5.3.2:
@@ -4325,7 +4325,7 @@ snapshots:
     transitivePeerDependencies:
       - debug
 
-  '@zougui/react.ui@0.1.15(@types/react-dom@18.3.0)(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(tailwindcss@3.4.7)':
+  '@zougui/react.ui@0.1.17(@types/react-dom@18.3.0)(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(tailwindcss@3.4.7)':
     dependencies:
       '@hookform/resolvers': 3.9.0(react-hook-form@7.52.2(react@18.3.1))
       '@next/bundle-analyzer': 14.2.5
