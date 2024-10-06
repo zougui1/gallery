@@ -98,9 +98,13 @@ const getFileMetadata = async (file: FileDownloadResult): Promise<FileMetadata> 
 }
 
 export const processFiles = async ({ post, files }: ProcessFilesOptions): Promise<ProcessFilesResult> => {
-  await DB.postQueue.addStep(post._id, {
-    date: new Date(),
-    status: PostQueueStatus.processing,
+  await DB.postQueue.findByIdAndUpdate(post._id, {
+    $push: {
+      steps: {
+        date: new Date(),
+        status: PostQueueStatus.processing,
+      },
+    },
   });
 
   const [

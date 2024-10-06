@@ -1,30 +1,8 @@
-import './connection';
+import 'server-only';
+import { Database } from '@zougui/gallery.database';
 
-import {
-  PostQuery,
-  type PostSchema,
-  type PostSchemaWithId,
-} from './post';
-import {
-  PostQueueQuery,
-  type PostQueueSchema,
-  type PostQueueSchemaWithId,
-  type PostQueueStepSchema,
-} from './post-queue';
-import type { WithId } from './types';
+import { env } from '~/env';
 
-export const DB = {
-  post: new PostQuery(),
-  postQueue: new PostQueueQuery(),
-};
+export const DB = new Database(env.DATABASE_URL);
 
-export type {
-  WithId,
-
-  PostSchema,
-  PostSchemaWithId,
-
-  PostQueueSchema,
-  PostQueueSchemaWithId,
-  PostQueueStepSchema,
-};
+export type * from '@zougui/gallery.database';

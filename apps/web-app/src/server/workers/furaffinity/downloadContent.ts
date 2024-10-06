@@ -72,9 +72,13 @@ export const downloadContent = async (
   post: WithId<PostQueueSchema>,
   submission: Submission
 ): Promise<DownloadResult> => {
-  await DB.postQueue.addStep(post._id, {
-    date: new Date(),
-    status: PostQueueStatus.downloadingContent,
+  await DB.postQueue.findByIdAndUpdate(post._id, {
+    $push: {
+      steps: {
+        date: new Date(),
+        status: PostQueueStatus.downloadingContent,
+      },
+    },
   });
 
   const fileName = nanoid();

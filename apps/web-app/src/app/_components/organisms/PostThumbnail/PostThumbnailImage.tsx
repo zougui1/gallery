@@ -3,8 +3,7 @@
 import Image from 'next/image';
 
 import { cn } from '@zougui/react.ui';
-
-import { PostRating } from '~/enums';
+import { PostRating } from '@zougui/gallery.enums';
 
 import { usePostThumbnail } from './context';
 import { PostContentIcon } from './_internal';

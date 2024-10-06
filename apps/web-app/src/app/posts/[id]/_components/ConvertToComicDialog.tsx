@@ -3,13 +3,13 @@
 import { z } from 'zod';
 
 import { Button, Dialog, type DialogRootProps, Form } from '@zougui/react.ui';
+import { PostSeriesType } from '@zougui/gallery.enums';
 
 import { type PostSchemaWithId } from '~/server/database';
 import { nullifyEmptyString } from '~/utils';
 import { useAppForm } from '~/app/_hooks';
 import { api } from '~/trpc/react';
 import { nanoid } from 'nanoid';
-import { PostSeriesType } from '~/enums';
 import { useRouter } from 'next/navigation';
 
 const formSchema = z.object({
@@ -17,7 +17,12 @@ const formSchema = z.object({
   chapterName: z.string().optional(),
 });
 
-export const ConvertToComicDialog = ({ post, onOpenChange, ...rest }: ConvertToComicDialogProps) => {
+export const ConvertToComicDialog = ({
+  post,
+  // eslint-disable-next-line @typescript-eslint/unbound-method
+  onOpenChange,
+  ...rest
+}: ConvertToComicDialogProps) => {
   const form = useAppForm({
     schema: formSchema,
     defaultValues: {

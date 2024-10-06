@@ -1,8 +1,7 @@
 'use client';
 
 import { cn } from '@zougui/react.ui';
-
-import { PostType } from '~/enums';
+import { PostType } from '@zougui/gallery.enums';
 
 import { PostThumbnailProvider, type PostThumbnailProviderProps } from './context';
 

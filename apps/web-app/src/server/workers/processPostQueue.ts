@@ -1,6 +1,6 @@
 import { FurAffinityClient } from '@zougui/furaffinity';
+import { PostQueueStatus } from '@zougui/gallery.enums';
 
-import { PostQueueStatus } from '~/enums';
 import { getErrorMessage } from '~/utils';
 
 import { processFuraffinityPostQueue } from './furaffinity';
@@ -19,10 +19,14 @@ const checkForRestart = async (postQueue: PostQueueSchemaWithId): Promise<void> 
     return;
   }
 
-  await DB.postQueue.addStep(postQueue._id, {
-    date: new Date(),
-    status: PostQueueStatus.restarted,
-    message: 'The server restarted before it could finish processing the post',
+  await DB.postQueue.findByIdAndUpdate(postQueue._id, {
+    $push: {
+      steps: {
+        date: new Date(),
+        status: PostQueueStatus.restarted,
+        message: 'The server restarted before it could finish processing the post',
+      },
+    },
   });
 }
 
@@ -41,10 +45,14 @@ export const processPostQueue = async (post: PostQueueSchemaWithId) => {
     // TODO process unknown URL upload
   } catch (error) {
     console.error(error);
-    await DB.postQueue.addStep(post._id, {
-      date: new Date(),
-      status: PostQueueStatus.error,
-      message: getErrorMessage(error, 'An unknown error has occured'),
+    await DB.postQueue.findByIdAndUpdate(post._id, {
+      $push: {
+        steps: {
+          date: new Date(),
+          status: PostQueueStatus.error,
+          message: getErrorMessage(error, 'An unknown error has occured'),
+        },
+      },
     });
   }
 }

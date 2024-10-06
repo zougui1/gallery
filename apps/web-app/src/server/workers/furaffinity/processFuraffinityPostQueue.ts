@@ -82,10 +82,14 @@ const tryStep = <Args extends unknown[], Return>(
     const [error] = res;
 
     if (error) {
-      await DB.postQueue.addStep(post._id, {
-        date: new Date(),
-        status: PostQueueStatus.error,
-        message: getErrorMessage(error, defaultErrorMessage),
+      await DB.postQueue.findByIdAndUpdate(post._id, {
+        $push: {
+          steps: {
+            date: new Date(),
+            status: PostQueueStatus.error,
+            message: getErrorMessage(error, defaultErrorMessage),
+          },
+        },
       });
     }
 
@@ -102,10 +106,14 @@ export const processFuraffinityPostQueue = async (postQueue: WithId<PostQueueSch
   }
 
   if (!submission) {
-    await DB.postQueue.addStep(postQueue._id, {
-      date: new Date(),
-      status: PostQueueStatus.error,
-      message: 'Submission not found',
+    await DB.postQueue.findByIdAndUpdate(postQueue._id, {
+      $push: {
+        steps: {
+          date: new Date(),
+          status: PostQueueStatus.error,
+          message: 'Submission not found',
+        },
+      },
     });
 
     return;
@@ -143,10 +151,14 @@ export const processFuraffinityPostQueue = async (postQueue: WithId<PostQueueSch
     }
 
     if (duplicatePost) {
-      await DB.postQueue.addStep(postQueue._id, {
-        date: new Date(),
-        status: PostQueueStatus.ignored,
-        message: `Duplicate of ${duplicatePost._id.toString()}`,
+      await DB.postQueue.findByIdAndUpdate(postQueue._id, {
+        $push: {
+          steps: {
+            date: new Date(),
+            status: PostQueueStatus.ignored,
+            message: `Duplicate of ${duplicatePost._id.toString()}`,
+          },
+        },
       });
       return;
     }
@@ -195,9 +207,12 @@ export const processFuraffinityPostQueue = async (postQueue: WithId<PostQueueSch
     originalData: submission,
   };
 
-  const existingPost = await DB.post.findBySourceUrl(postQueue.url);
-  const updatedPost = existingPost && await DB.post.updateById(existingPost._id, postData);
-  const newPost = updatedPost ?? await DB.post.create(postData);
+  const existingPost = await DB.post.findOne({ sourceUrl: postQueue.url });
+  const updatedPost = existingPost && await DB.post.findByIdAndUpdate(
+    existingPost._id,
+    DB.post.schema.post.parse(postData),
+  );
+  const newPost = updatedPost ?? await DB.post.createOne(postData);
 
   if (existingPost) {
     await Promise.allSettled([
@@ -221,8 +236,12 @@ export const processFuraffinityPostQueue = async (postQueue: WithId<PostQueueSch
     }
   }
 
-  await DB.postQueue.addStep(postQueue._id, {
-    date: new Date(),
-    status: PostQueueStatus.complete,
+  await DB.postQueue.findByIdAndUpdate(postQueue._id, {
+    $push: {
+      steps: {
+        date: new Date(),
+        status: PostQueueStatus.complete,
+      },
+    },
   });
 }

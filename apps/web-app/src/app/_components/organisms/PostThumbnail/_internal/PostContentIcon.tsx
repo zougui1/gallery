@@ -2,9 +2,10 @@
 
 import { Book, BookText, FileText, FileVideo, ImagePlay, Images, type LucideIcon } from 'lucide-react';
 
-import { PostType } from '~/enums';
+import { PostType } from '@zougui/gallery.enums';
+import { type PostSchemaWithId } from '@zougui/gallery.database';
+
 import { ImageIcon } from '~/app/_components/atoms/ImageIcon';
-import { type PostSchemaWithId } from '~/server/database';
 
 const getIconComponent = (post: PostSchemaWithId): LucideIcon | undefined => {
   if (post.contentType === PostType.animation) {

@@ -42,7 +42,17 @@ enum FilterType {
   comic = PostType.comic,
 }
 
-export const PostSelectorDialog = ({ onOpenChange, onSelectPosts, excludeAlts, excludeSeries, defaultSelectedPosts, multiple, children, ...rest }: PostSelectorDialogProps) => {
+export const PostSelectorDialog = ({
+  // eslint-disable-next-line @typescript-eslint/unbound-method
+  onOpenChange,
+  onSelectPosts,
+  excludeAlts,
+  excludeSeries,
+  defaultSelectedPosts,
+  multiple,
+  children,
+  ...rest
+}: PostSelectorDialogProps) => {
   const [keywords, setKeywords] = useState<string[]>([]);
   const [ratings, setRatings] = useState<PostRating[]>([]);
   const [types, setTypes] = useState<FilterType[]>([]);
@@ -79,7 +89,7 @@ export const PostSelectorDialog = ({ onOpenChange, onSelectPosts, excludeAlts, e
   }
 
   return (
-    <Dialog.Root {...rest} onOpenChange={onOpenChange}>
+    <Dialog.Root {...rest} onOpenChange={open => onOpenChange?.(open)}>
       {children}
 
       <Dialog.Content className="max-w-[min(1400px,calc(100vw-40px))] w-screen">

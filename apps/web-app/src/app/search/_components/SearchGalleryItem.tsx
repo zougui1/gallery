@@ -3,10 +3,11 @@
 import { Checkbox, cn } from '@zougui/react.ui';
 import { Book, BookText, Images, type LucideIcon } from 'lucide-react';
 
+import { PostType } from '@zougui/gallery.enums';
+
 import { ImageIcon } from '~/app/_components/atoms/ImageIcon';
 import { PostSelector } from '~/app/_components/organisms/PostSelector';
 import { PostThumbnail } from '~/app/_components/organisms/PostThumbnail';
-import { PostType } from '~/enums';
 import { type PostSchemaWithId } from '~/server/database';
 
 const getIcon = (post: PostSchemaWithId): LucideIcon | undefined => {

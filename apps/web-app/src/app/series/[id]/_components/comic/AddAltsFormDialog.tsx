@@ -33,7 +33,12 @@ const AltGallery = ({ id }: { id: string }) => {
   );
 }
 
-export const AddAltsFormDialog = ({ post, onOpenChange, ...rest }: AddAltsFormDialogProps) => {
+export const AddAltsFormDialog = ({
+  post,
+  // eslint-disable-next-line @typescript-eslint/unbound-method
+  onOpenChange,
+  ...rest
+}: AddAltsFormDialogProps) => {
   const [newAlts, setNewAlts] = useState<Omit<SubmissionUploadSchema['asAlt'], 'createdAt'>[]>([]);
   const [selectedPosts, setSelectedPosts] = useState<PostSchemaWithId[]>([]);
   const [labels, setLabels] = useState<Record<string, string>>({});

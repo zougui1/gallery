@@ -50,9 +50,13 @@ const findSimilarPost = async (newPost: PostSchemaWithId): Promise<PostSchemaWit
 }
 
 export const scanSimilarities = async (postQueue: PostQueueSchemaWithId, post: PostSchemaWithId): Promise<void> => {
-  await DB.postQueue.addStep(postQueue._id, {
-    date: new Date(),
-    status: PostQueueStatus.scanningSimilarities,
+  await DB.postQueue.findByIdAndUpdate(postQueue._id, {
+    $push: {
+      steps: {
+        date: new Date(),
+        status: PostQueueStatus.scanningSimilarities,
+      },
+    },
   });
 
   // there is no scan to do if no hash

@@ -1,11 +1,16 @@
-import { DB, type PostSchemaWithId } from '~/server/database';
+import { type PostQueueSchemaWithId, type PostSchemaWithId } from '@zougui/gallery.database';
+
+import { DB } from '~/server/database';
 import { PostQueueStatus } from '~/enums';
-import type { PostQueueSchemaWithId } from '~/server/database/post-queue';
 
 export const checkDuplicates = async (postQueue: PostQueueSchemaWithId, checksum: string): Promise<PostSchemaWithId | undefined> => {
-  await DB.postQueue.addStep(postQueue._id, {
-    date: new Date(),
-    status: PostQueueStatus.checkingDuplicates,
+  await DB.postQueue.findByIdAndUpdate(postQueue._id, {
+    $push: {
+      steps: {
+        date: new Date(),
+        status: PostQueueStatus.checkingDuplicates,
+      },
+    },
   });
 
   const duplicatePost = await DB.post.model.findOne({

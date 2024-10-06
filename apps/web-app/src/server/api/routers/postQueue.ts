@@ -1,5 +1,8 @@
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
+import { type Types, type FlattenMaps } from 'mongoose';
+
+import { type PostQueueSchemaWithId, type PostQueue } from '@zougui/gallery.database';
 
 import { createTRPCRouter, publicProcedure } from '~/server/api/trpc';
 import { DB } from '~/server/database';
@@ -9,7 +12,7 @@ import { PostQueueStatus, PostSeriesType, deletableStatuses, permanentlyDeletabl
 import { getEnumValues } from '~/utils';
 
 const checkDuplicate = async (url: string, message = 'This URL has already been uploaded'): Promise<void> => {
-  const duplicate = await DB.postQueue.findDuplicate({ url });
+  const duplicate = await DB.postQueue.findOne({ url });
 
   if (duplicate) {
     throw new TRPCError({
@@ -17,6 +20,81 @@ const checkDuplicate = async (url: string, message = 'This URL has already been 
       message,
     });
   }
+}
+
+export interface SearchOptions {
+  page: number;
+  pageSize: number;
+  status?: PostQueueStatus | null;
+}
+
+type LeanPostQueue = FlattenMaps<PostQueue> & {
+  _id: Types.ObjectId;
+};
+
+export interface SearchResult {
+  count: number;
+  data: PostQueueSchemaWithId[];
+}
+
+type SearchAggregateResult = {
+  count: [{ count: number }];
+  data: LeanPostQueue[];
+}
+
+const search = async (options: SearchOptions): Promise<SearchResult> => {
+  const { pageSize } = options;
+  const pageIndex = Math.max(options.page - 1, 0);
+
+  let aggregate = DB.postQueue.aggregate<SearchAggregateResult>();
+
+  if (options.status) {
+    aggregate = aggregate
+      .addFields({
+        lastStatus: {
+          $last: '$steps.status',
+        },
+      })
+      .match(options.status === PostQueueStatus.idle ? {
+        $or: [
+          { lastStatus: options.status },
+          {
+            steps: { $size: 0 },
+          }
+        ],
+      } : {
+        lastStatus: options.status,
+      });
+  }
+
+  aggregate = aggregate.facet({
+    data: [
+      {
+        $sort: { _id: -1 },
+      },
+      { $skip: pageIndex * pageSize },
+      { $limit: pageSize },
+    ],
+    count: [
+      {
+        $count: 'count',
+      },
+    ],
+  });
+
+  const [result] = await aggregate;
+
+  if (!result) {
+    return { count: 0, data: [] };
+  }
+
+  console.clear()
+  console.log('result.data', result.data)
+
+  return {
+    count: result.count?.[0]?.count ?? 0,
+    data: result.data.map(DB.postQueue.deserialize),
+  };
 }
 
 export const postQueueRouter = createTRPCRouter({
@@ -58,11 +136,11 @@ export const postQueueRouter = createTRPCRouter({
       }));
 
       const [postQueues] = await Promise.all([
-        DB.postQueue.createMany(input.newPosts),
-        ...(input.associatedPosts?.flatMap(post => {
+        DB.postQueue.createMany(input.newPosts.map(p => ({ ...p, steps: [] }))),
+        ...(input.associatedPosts?.flatMap(({ sourceUrl, ...post }) => {
           return [
-            DB.post.setAdditionalData(post.sourceUrl, post),
-            DB.postQueue.setAdditionalData(post.sourceUrl, post),
+            DB.post.updateOne({ url: sourceUrl }, post),
+            DB.postQueue.updateOne({ url: sourceUrl }, post),
           ];
         }) ?? []),
       ]);
@@ -80,7 +158,7 @@ export const postQueueRouter = createTRPCRouter({
     .query(async ({ input }) => {
       const pageSize = 10;
 
-      const result = await DB.postQueue.search({
+      const result = await search({
         ...input,
         pageSize,
       });
@@ -105,10 +183,14 @@ export const postQueueRouter = createTRPCRouter({
         });
       }
 
-      await DB.postQueue.addStep(postQueue._id, {
-        date: new Date(),
-        status: PostQueueStatus.restarted,
-        message: 'The processing of the post has been manually restarted',
+      await DB.postQueue.findByIdAndUpdate(postQueue._id, {
+        $push: {
+          steps: {
+            date: new Date(),
+            status: PostQueueStatus.restarted,
+            message: 'The processing of the post has been manually restarted',
+          },
+        },
       });
 
       postTaskQueue.add(postQueue);
@@ -119,7 +201,7 @@ export const postQueueRouter = createTRPCRouter({
       id: z.string(),
     }))
     .query(async ({ input }) => {
-      return await DB.postQueue.findBySeriesId(input.id);
+      return await DB.postQueue.find({ 'series.id': input.id });
     }),
 
   delete: publicProcedure
@@ -171,6 +253,6 @@ export const postQueueRouter = createTRPCRouter({
           });
         }
 
-        await DB.postQueue.deleteById(postQueue._id);
+        await DB.postQueue.findByIdAndDelete(postQueue._id);
       }),
 });

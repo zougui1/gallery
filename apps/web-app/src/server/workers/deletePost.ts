@@ -17,19 +17,28 @@ const deleteFile = async (fileName: string, label: string): Promise<void> => {
 }
 
 export const deletePost = async (postQueue: PostQueueSchemaWithId): Promise<void> => {
-  await DB.postQueue.addStep(postQueue._id, {
-    status: PostQueueStatus.deleting,
-    date: new Date(),
+  await DB.postQueue.findByIdAndUpdate(postQueue._id, {
+    $push: {
+      steps: {
+        status: PostQueueStatus.deleting,
+        date: new Date(),
+      },
+    },
   });
 
-  const post = await DB.post.findBySourceUrl(postQueue.url);
+  const post = await DB.post.findOne({ sourceUrl: postQueue.url });
 
   if (!post) {
-    return await DB.postQueue.addStep(postQueue._id, {
-      status: PostQueueStatus.error,
-      date: new Date(),
-      message: 'Cannot delete the post: entry not found in the database',
+    await DB.postQueue.findByIdAndUpdate(postQueue._id, {
+      $push: {
+        steps: {
+          status: PostQueueStatus.error,
+          date: new Date(),
+          message: 'Cannot delete the post: entry not found in the database',
+        },
+      },
     });
+    return;
   }
 
   const results = await Promise.allSettled([
@@ -56,40 +65,54 @@ export const deletePost = async (postQueue: PostQueueSchemaWithId): Promise<void
   const hasDeletionSucceeded = results.every(result => result.status === 'fulfilled');
 
   if (!hasDeletionSucceeded) {
-    return await DB.postQueue.addStep(postQueue._id, {
-      status: PostQueueStatus.error,
-      date: new Date(),
-      message: 'An error occurred while deleting the post\'s files',
-      errorList: errors,
+    await DB.postQueue.findByIdAndUpdate(postQueue._id, {
+      $push: {
+        steps: {
+          status: PostQueueStatus.error,
+          date: new Date(),
+          message: 'An error occurred while deleting the post\'s files',
+          errorList: errors,
+        },
+      },
     });
+    return;
   }
 
   try {
-    await DB.post.deleteById(post._id);
+    await DB.post.findByIdAndDelete(post._id);
   } catch (error) {
-    return await DB.postQueue.addStep(postQueue._id, {
-      status: PostQueueStatus.error,
-      date: new Date(),
-      message: 'The post\'s files have been deleted but an error occurred while deleting the post\'s data from the database',
-      errorList: errors,
+    await DB.postQueue.findByIdAndUpdate(postQueue._id, {
+      $push: {
+        steps: {
+          status: PostQueueStatus.error,
+          date: new Date(),
+          message: 'The post\'s files have been deleted but an error occurred while deleting the post\'s data from the database',
+          errorList: errors,
+        },
+      },
     });
+    return;
   }
 
   // TODO log errors
   await Promise.allSettled([
-    DB.postQueue.addStep(postQueue._id, {
-      status: PostQueueStatus.deleted,
-      date: new Date(),
+    DB.postQueue.findByIdAndUpdate(postQueue._id, {
+      $push: {
+        steps: {
+          status: PostQueueStatus.deleted,
+          date: new Date(),
+        },
+      },
     }),
     post.alt && updateLastRemainingAlt(post.alt.id),
   ]);
 }
 
 const updateLastRemainingAlt = async (altId: string): Promise<void> => {
-  const altPosts = await DB.post.findManyByAltId([altId]);
+  const altPosts = await DB.post.find({ 'alt.id': { $in: [altId] } });
 
   // if there is only 1 alt remaining then we remove its alt metadata as it becomes obsolete
   if (altPosts.length === 1) {
-    await DB.post.removeAlt({ _id: altPosts[0]!._id });
+    await DB.post.updateOne({ _id: altPosts[0]!._id }, { $unset: { alt: 1 } });
   }
 }

@@ -23,11 +23,71 @@ const sortByGroup = (posts: PostSchemaWithId[], getGroupId: (post: PostSchemaWit
   return sortedPosts;
 }
 
+const POSTS_PER_PAGE = 50;
+
+const search = async (options: SearchOptions): Promise<{ posts: PostSchemaWithId[], hasMore: boolean }> => {
+  const keywordsMatch = options.keywords?.length ? {
+    keywords: {
+      $all: options.keywords,
+    },
+  } : {};
+
+  const ratingsMatch = options.ratings?.length ? {
+    rating: {
+      $in: options.ratings,
+    },
+  } : {};
+
+  const typesMatch = options.types?.length ? {
+    contentType: {
+      $in: options.types,
+    },
+  } : {};
+
+  const excludeAltsMatch = options.excludeAlts ? {
+    alt: null,
+  } : {};
+
+  const excludeSeriesMatch = options.excludeSeries ? {
+    series: null,
+  } : {};
+
+  const documents = await DB.post
+    .find({
+      ...keywordsMatch,
+      ...ratingsMatch,
+      ...typesMatch,
+      ...excludeAltsMatch,
+      ...excludeSeriesMatch,
+    })
+    .sort({ createdAt: -1 })
+    .skip((options.page - 1) * POSTS_PER_PAGE)
+    .limit(POSTS_PER_PAGE + 1)
+    .lean();
+
+  const posts = documents.slice(0, POSTS_PER_PAGE).map(DB.post.deserialize);
+
+  return {
+    posts,
+    hasMore: documents.length > POSTS_PER_PAGE,
+  };
+}
+
+export interface SearchOptions {
+  page: number;
+  keywords?: string[];
+  ratings?: PostRating[];
+  types?: PostType[];
+  excludeAlts?: boolean;
+  excludeSeries?: boolean;
+}
+
+
 export const postRouter = createTRPCRouter({
   findAllKeywords: publicProcedure.query(async () => {
     const allKeywords = await Promise.all([
-      DB.postQueue.findAllKeywords(),
-      DB.post.findAllKeywords(),
+      DB.postQueue.distinct('keywords').transform(keywords => keywords.map(String)),
+      DB.post.distinct('keywords').transform(keywords => keywords.map(String)),
     ]);
 
     return unique(allKeywords.flat());
@@ -47,7 +107,7 @@ export const postRouter = createTRPCRouter({
       excludeSeries: z.boolean().optional(),
     }).default({}))
     .query(async ({ input }) => {
-      return await DB.post.search(input);
+      return await search(input);
     }),
 
   findById: publicProcedure
@@ -63,7 +123,7 @@ export const postRouter = createTRPCRouter({
       id: z.string(),
     }))
     .query(async ({ input }) => {
-      return await DB.post.findManyBySeriesId([input.id]);
+      return await DB.post.find({ 'series.id': { $in: [input.id] } }).limit(200);
     }),
 
   findByAltId: publicProcedure
@@ -71,7 +131,7 @@ export const postRouter = createTRPCRouter({
       id: z.string(),
     }))
     .query(async ({ input }) => {
-      return await DB.post.findManyByAltId([input.id]);
+      return await DB.post.find({ 'alt.id': { $in: [input.id] } }).limit(200);
     }),
 
   getGallery: publicProcedure
@@ -86,9 +146,9 @@ export const postRouter = createTRPCRouter({
         alts,
         series,
       ] = await Promise.all([
-        input.postIds && DB.post.findManyById(input.postIds),
-        input.altIds && DB.post.findManyByAltId(input.altIds),
-        input.seriesIds && DB.post.findManyBySeriesId(input.seriesIds),
+        input.postIds && DB.post.find({ _id: { $in: input.postIds } }).limit(200),
+        input.altIds && DB.post.find({ 'alt.id': { $in: input.altIds } }).limit(200),
+        input.seriesIds && DB.post.find({ 'series.id': { $in: input.seriesIds } }).limit(200),
       ]);
 
       const altGroups = sortByGroup(alts ?? [], submission => submission.alt?.id ?? '');
@@ -107,7 +167,11 @@ export const postRouter = createTRPCRouter({
       keyword: z.string(),
     }))
     .mutation(async ({ input }) => {
-      await DB.post.addKeyword(input.id, input.keyword);
+      await DB.post.findByIdAndUpdate(input.id, {
+        $addToSet: {
+          keywords: input.keyword,
+        },
+      });
     }),
 
   removeKeyword: publicProcedure
@@ -116,7 +180,11 @@ export const postRouter = createTRPCRouter({
       keyword: z.string(),
     }))
     .mutation(async ({ input }) => {
-      await DB.post.removeKeyword(input.id, input.keyword);
+      await DB.post.findByIdAndUpdate(input.id, {
+        $pull: {
+          keywords: input.keyword,
+        },
+      });
     }),
 
   setAlt: publicProcedure
@@ -126,8 +194,8 @@ export const postRouter = createTRPCRouter({
     }))
     .mutation(async ({ input }) => {
       const results = await Promise.allSettled([
-        DB.post.setAlt(input.sourceUrl, input.alt),
-        DB.postQueue.setAlt(input.sourceUrl, input.alt),
+        DB.post.updateOne({ sourceUrl: input.sourceUrl }, { alt: input.alt }),
+        DB.postQueue.updateOne({ sourceUrl: input.sourceUrl }, { alt: input.alt }),
       ]);
 
       const errors = results.map(r => r.status === 'rejected' ? r.reason as unknown : undefined).filter(Boolean);
@@ -144,8 +212,8 @@ export const postRouter = createTRPCRouter({
     }))
     .mutation(async ({ input }) => {
       const results = await Promise.allSettled([
-        DB.post.setSeries(input.sourceUrl, input.series),
-        DB.postQueue.setSeries(input.sourceUrl, input.series),
+        DB.post.updateOne({ sourceUrl: input.sourceUrl }, { series: input.series }),
+        DB.postQueue.updateOne({ sourceUrl: input.sourceUrl }, { series: input.series }),
       ]);
 
       const errors = results.map(r => r.status === 'rejected' ? r.reason as unknown : undefined).filter(Boolean);
@@ -161,8 +229,8 @@ export const postRouter = createTRPCRouter({
     }))
     .mutation(async ({ input }) => {
       const results = await Promise.allSettled([
-        DB.post.removeAlt({ sourceUrl: input.sourceUrl }),
-        DB.postQueue.removeAlt({ sourceUrl: input.sourceUrl }),
+        DB.post.updateOne({ sourceUrl: input.sourceUrl }, { $unset: { alt: 1 } }),
+        DB.postQueue.updateOne({ sourceUrl: input.sourceUrl }, { $unset: { alt: 1 } }),
       ]);
 
       const errors = results.map(r => r.status === 'rejected' ? r.reason as unknown : undefined).filter(Boolean);

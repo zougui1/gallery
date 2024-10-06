@@ -1,9 +1,9 @@
 import { type Metadata } from 'next';
 
 import { MainLayout, Typography } from '@zougui/react.ui';
+import { PostSeriesType } from '@zougui/gallery.enums';
 
 import { api, HydrateClient } from '~/trpc/server';
-import { PostSeriesType } from '~/enums';
 
 import { Comic } from './_components/comic/Comic';
 
