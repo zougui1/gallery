@@ -1,5 +1,5 @@
 {
-  "name": "@zougui/gallery",
+  "name": "@zougui/gallery.web-app",
   "version": "0.2.0",
   "private": true,
   "type": "module",
