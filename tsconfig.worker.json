@@ -1,0 +1,37 @@
+{
+  "compilerOptions": {
+    /* Base Options: */
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "target": "es2022",
+    "allowJs": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+
+    /* Strictness */
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "checkJs": true,
+
+    /* Bundled projects */
+    "lib": ["ES2022"],
+    "module": "ES2015",
+    "moduleResolution": "Bundler",
+    "outDir": ".worker",
+
+    /* Path Aliases */
+    "baseUrl": "./src",
+    "paths": {
+      "~/*": ["./*"]
+    }
+  },
+  "include": [
+    "./src/utils/**/*.ts",
+    "./src/server/workers/**/*.ts",
+    "./src/server/database/**/*.ts",
+    "./src/@types/**/*.d.ts",
+  ],
+  "exclude": ["node_modules"]
+}
