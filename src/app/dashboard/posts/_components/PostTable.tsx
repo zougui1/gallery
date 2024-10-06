@@ -1,7 +1,7 @@
 'use client';
 
 import { type ColumnDef } from '@tanstack/react-table';
-import { MoreHorizontal, Plus } from 'lucide-react';
+import { MoreHorizontal } from 'lucide-react';
 import { DateTime } from 'luxon';
 import { useQueryState } from 'nuqs';
 import { z } from 'zod';
