@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "incremental": true,
+    "module": "commonjs",
+    "forceConsistentCasingInFileNames": true,
+    "declaration": true,
+    "sourceMap": true,
+    "declarationMap": true,
+    "inlineSources": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "strict": true,
+    "esModuleInterop": true,
+    "preserveConstEnums": true,
+    "skipLibCheck": true,
+    "allowSyntheticDefaultImports": true,
+    "noFallthroughCasesInSwitch": true,
+    "noEmitOnError": true,
+    "moduleResolution": "node",
+    "lib": ["dom", "dom.iterable", "ES2022"],
+    "rootDir": "src",
+    "outDir": "lib",
+    "target": "es2017"
+  },
+  "include": ["src/**/*.ts"]
+}

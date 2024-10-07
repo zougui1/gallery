@@ -1,0 +1,28 @@
+{
+  "name": "@zougui/gallery.utils",
+  "version": "1.0.0",
+  "description": "",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "scripts": {
+    "start": "nodemon lib",
+    "compile": "tsc --project .",
+    "compile:watch": "npm run compile -- --watch",
+    "clean": "rimraf ./lib & rimraf tsconfig.tsbuildinfo",
+    "build": "npm run clean && npm run compile",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [],
+  "author": "Zougui",
+  "license": "ISC",
+  "dependencies": {
+    "@zougui/furaffinity": "^0.2.5",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.10",
+    "rimraf": "^6.0.1",
+    "type-fest": "^4.23.0",
+    "typescript": "^5.6.2"
+  }
+}
