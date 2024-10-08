@@ -1,1 +1,0 @@
-{"version":3,"file":"index.js","sourceRoot":"","sources":["../../src/post/index.ts"],"names":[],"mappings":";;;;;;;;;;;;;;;;AAAA,+CAA6B;AAC7B,oDAAkC","sourcesContent":["export * from './post.model';\nexport * from './post.collection';\nexport type * from './post.schema';\n"]}

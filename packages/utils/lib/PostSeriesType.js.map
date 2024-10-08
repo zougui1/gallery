@@ -1,1 +1,0 @@
-{"version":3,"file":"PostSeriesType.js","sourceRoot":"","sources":["../src/PostSeriesType.ts"],"names":[],"mappings":";;;AAAA,IAAY,cAGX;AAHD,WAAY,cAAc;IACxB,iCAAe,CAAA;IACf,iCAAe,CAAA;AACjB,CAAC,EAHW,cAAc,8BAAd,cAAc,QAGzB","sourcesContent":["export enum PostSeriesType {\n  comic = 'comic',\n  story = 'story',\n}\n"]}
