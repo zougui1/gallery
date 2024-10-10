@@ -23,6 +23,7 @@
     "@zougui/furaffinity": "^0.2.5",
     "@zougui/gallery.database": "workspace:^",
     "@zougui/gallery.enums": "workspace:^",
+    "@zougui/gallery.rabbitmq": "workspace:^",
     "@zougui/react.ui": "^0.1.17",
     "axios": "^1.7.3",
     "blockhash-core": "^0.1.0",

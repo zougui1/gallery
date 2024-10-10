@@ -85,6 +85,7 @@ export const postSchema = z.object({
   removedAt: z.date().optional(),
 
   originalData: submissionSchema.optional(),
+  persisted: z.boolean().default(false),
 });
 
 export type PostSchema = z.infer<typeof postSchema>;

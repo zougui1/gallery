@@ -1,5 +1,5 @@
 {
-  "name": "@zougui/gallery.enums",
+  "name": "@zougui/gallery.rabbitmq",
   "version": "1.0.0",
   "description": "",
   "main": "lib/index.js",
@@ -16,14 +16,14 @@
   "author": "Zougui",
   "license": "ISC",
   "dependencies": {
-    "@zougui/furaffinity": "^0.2.5",
     "@zougui/gallery.utils": "workspace:^",
+    "rabbitmq-client": "^5.0.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {
     "@types/node": "^20.14.10",
     "rimraf": "^6.0.1",
     "type-fest": "^4.23.0",
-    "typescript": "^5.5.3"
+    "typescript": "^5.6.2"
   }
 }

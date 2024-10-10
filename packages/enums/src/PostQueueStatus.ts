@@ -1,4 +1,4 @@
-import { getEnumValues } from './utils';
+import { getEnumValues } from '@zougui/gallery.utils';
 
 export enum PostQueueStatus {
   /**

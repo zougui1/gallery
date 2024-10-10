@@ -3,12 +3,20 @@ import { z } from 'zod';
 import { type Types, type FlattenMaps } from 'mongoose';
 
 import { type PostQueueSchemaWithId, type PostQueue } from '@zougui/gallery.database';
+import { WorkerType } from '@zougui/gallery.rabbitmq';
+import {
+  PostQueueStatus,
+  PostSeriesType,
+  deletableStatuses,
+  permanentlyDeletableStatuses,
+  postQueueStatusLabelMap,
+} from '@zougui/gallery.enums';
 
 import { createTRPCRouter, publicProcedure } from '~/server/api/trpc';
 import { DB } from '~/server/database';
+import { rabbit } from '~/server/rabbitmq';
 import { altUploadSchema, seriesUploadSchema, submissionUploadSchema } from '~/schemas/upload';
-import { deletePost, postTaskQueue } from '~/server/workers';
-import { PostQueueStatus, PostSeriesType, deletableStatuses, permanentlyDeletableStatuses, postQueueStatusLabelMap } from '~/enums';
+import { deletePost } from '~/server/workers';
 import { getEnumValues } from '~/utils';
 
 const checkDuplicate = async (url: string, message = 'This URL has already been uploaded'): Promise<void> => {
@@ -146,7 +154,10 @@ export const postQueueRouter = createTRPCRouter({
       ]);
 
       for (const postQueue of postQueues) {
-        postTaskQueue.add(postQueue);
+        await rabbit.galleryWorker.send({
+          type: WorkerType.processPost,
+          postQueueId: postQueue._id,
+        });
       }
     }),
 
@@ -193,7 +204,10 @@ export const postQueueRouter = createTRPCRouter({
         },
       });
 
-      postTaskQueue.add(postQueue);
+      await rabbit.galleryWorker.send({
+        type: WorkerType.processPost,
+        postQueueId: postQueue._id,
+      });
     }),
 
   findBySeriesId: publicProcedure

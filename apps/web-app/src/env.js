@@ -13,6 +13,10 @@ export const env = createEnv({
     FURAFFINITY_COOKIE_B: z.string(),
     CONTENT_DIR: z.string(),
     TEMP_DIR: z.string(),
+    RABBIT_MQ_USERNAME: z.string(),
+    RABBIT_MQ_PASSWORD: z.string(),
+    RABBIT_MQ_HOSTNAME: z.string(),
+    RABBIT_MQ_PORT: z.coerce.number().int(),
   },
 
   /**
@@ -35,6 +39,10 @@ export const env = createEnv({
     FURAFFINITY_COOKIE_B: process.env.FURAFFINITY_COOKIE_B,
     CONTENT_DIR: process.env.CONTENT_DIR,
     TEMP_DIR: process.env.TEMP_DIR,
+    RABBIT_MQ_USERNAME: process.env.RABBIT_MQ_USERNAME,
+    RABBIT_MQ_PASSWORD: process.env.RABBIT_MQ_PASSWORD,
+    RABBIT_MQ_HOSTNAME: process.env.RABBIT_MQ_HOSTNAME,
+    RABBIT_MQ_PORT: process.env.RABBIT_MQ_PORT,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

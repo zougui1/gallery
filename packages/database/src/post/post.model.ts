@@ -166,4 +166,7 @@ export class Post {
     _id: false,
   })
   originalData?: unknown;
+
+  @prop({ type: Boolean, required: false, default: false })
+  persisted?: boolean;
 }
