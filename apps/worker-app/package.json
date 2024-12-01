@@ -16,7 +16,7 @@
   "author": "Zougui",
   "license": "ISC",
   "dependencies": {
-    "@zougui/furaffinity": "^0.2.5",
+    "@zougui/furaffinity": "^0.3.0",
     "@zougui/gallery.database": "workspace:^",
     "@zougui/gallery.enums": "workspace:^",
     "@zougui/gallery.rabbitmq": "workspace:^",

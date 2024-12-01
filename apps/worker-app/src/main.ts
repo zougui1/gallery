@@ -3,6 +3,7 @@ import path from 'node:path';
 import workerpool from 'workerpool';
 
 import { rabbit } from './rabbitmq';
+//import { scraper } from './scraper';
 
 const pool = workerpool.pool(path.join(__dirname, 'workerpool.js'));
 
@@ -13,3 +14,8 @@ rabbit.queue.galleryWorker.createConsumer({ qos: { prefetchCount: 1 } }, async m
     console.error('Worker error:', error);
   }
 });
+/*
+scraper().catch(error => {
+  console.error('Scraper error:', error);
+});
+*/

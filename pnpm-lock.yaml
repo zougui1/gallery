@@ -192,8 +192,8 @@ importers:
   apps/worker-app:
     dependencies:
       '@zougui/furaffinity':
-        specifier: ^0.2.5
-        version: 0.2.5
+        specifier: ^0.3.0
+        version: 0.3.0
       '@zougui/gallery.database':
         specifier: workspace:^
         version: link:../../packages/database
@@ -1453,6 +1453,9 @@ packages:
 
   '@zougui/furaffinity@0.2.5':
     resolution: {integrity: sha512-2TI/7gwD7kxjaf7mJUHKCf90uA5zSq8YuDNPyZOtAwSjdPMNK56tJEArDxHgLlP75kHyEv9XdaSfx+yPQKHWYw==}
+
+  '@zougui/furaffinity@0.3.0':
+    resolution: {integrity: sha512-nBeNIkaooXA1YNbIxUrBiwD8CK2ben+qUni0CzT30xxKv+e0WFE+8uCLeL/LGgj+La/2RpGOZoC0sqrq34wrXw==}
 
   '@zougui/react.ui@0.1.17':
     resolution: {integrity: sha512-kL4tbm83CcRPKoHideJCFUAlmu9PYl/ZijbzQcbAp7zNGDNQAaWUyh/pD2qMTDUoirA6WKFSNyaoznLvyXcIOA==}
@@ -4544,6 +4547,17 @@ snapshots:
       pretty-ms: 7.0.1
 
   '@zougui/furaffinity@0.2.5':
+    dependencies:
+      cheerio: 1.0.0-rc.12
+      date-fns: 2.30.0
+      radash: 12.1.0
+      sanitize-html: 2.13.1
+      scrape-it: 6.1.3
+      zod: 3.23.8
+    transitivePeerDependencies:
+      - debug
+
+  '@zougui/furaffinity@0.3.0':
     dependencies:
       cheerio: 1.0.0-rc.12
       date-fns: 2.30.0
